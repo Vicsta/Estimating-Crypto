@@ -1,7 +1,3 @@
-@*
- * This template takes a two arguments, a String containing a
- * message to display and an AssetsFinder to locate static assets.
- *@
 @(message: String)(implicit assetsFinder: AssetsFinder)
 
 @*
@@ -10,11 +6,6 @@
  * argument is an `Html` object containing the body of the page.
  *@
 @main("Welcome to Play", assetsFinder) {
-
-    @*
-     * Get an `Html` object by calling the built-in Play welcome
-     * template and passing a `String` message.
-     *@
-    @welcome(message, style = "scala")
-
+  <h1>Hello Valhalla</h1>
+  <div id="graph"></div>
 }
