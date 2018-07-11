@@ -30,6 +30,21 @@ def ema(data, period) :
         result[i] = a*data[i] + (1-a)*result[i-1]
     return result
 
+"""
+Double Exponential Moving Average
+"""
+def dema(data, period):
+    assert len(data) > period
+    emaX = ema(data, period)
+    emadX = ema(data - emaX, period)
+    return emaX + emadX
+
+"""
+Triple Expoential Moving Average
+"""
+def trix(data, period):
+    return ema(ema(ema(data, period), period), period)
+
 def main():
     period = 25
     N = 1000
@@ -41,10 +56,14 @@ def main():
 
     ma = simpleMA(data, period)
     em = ema(data, period)
+    de = dema(data, period)
+    tx = trix(data, period)
     x = np.arange(len(data))
     plt.plot(x, data)
-    plt.plot(x[:len(ma)], ma)
-    plt.plot(x[:len(em)], em)
+    plt.plot(x[:len(ma)], ma, 'r')
+    plt.plot(x[:len(em)], em, 'b')
+    plt.plot(x[:len(de)], de, 'y')
+    plt.plot(x[:len(tx)], de, 'g')
     plt.show()
     print(np.mean(ma))
 
