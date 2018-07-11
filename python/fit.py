@@ -14,13 +14,6 @@ def parse(fname):
             tv.append(t)
     return pv, qv, tv
 
-class dataSource :
-    
-    def __init__(self, name, fileName) :
-        self.name = name
-        self.p, self.q, self.t = parse(fileName)
-
-
 def plotData(pv, qv, tv):
     dt = np.zeros(len(tv))
     for i in range(1,len(tv)):
@@ -28,7 +21,53 @@ def plotData(pv, qv, tv):
     y = np.array(pv)
     plt.plot(dt, y)
     plt.show()
+
+class dataSource :
     
+    def __init__(self, name, fileName) :
+        self.name = name
+        self.p, self.q, self.t = parse(fileName)
+        self.ix = 0
+
+    def rewind(self):
+        self.ix = 0
+
+    def incr(self) :
+        self.ix += 1
+
+    def decr(self) :
+        self.ix -= 1
+
+    def hasNext(self) :
+        return self.ix < len(self.t)
+
+    def nextTime(self):
+        return self.t[self.ix]
+
+    def publish(self):
+        i = self.ix
+        sx = ("%s,%f,%f,%f" % (self.name, self.t[i], self.p[i], self.q[i]))
+        self.incr()
+        return sx
+              
+
+def sourcesHasNext(sources):
+    for s in sources:
+        if s.hasNext() : return True
+    return False
+
+def nextSource(sources):
+    assert len(sources) > 0
+    next = sources[0]
+    for i in range(1,len(sources)):
+        if sources[i].nextTime() < next.nextTime():
+            next = sources[i]
+    return next
+
+def marketSim(sources) :
+    while sourcesHasNext(sources):
+        next = nextSource(sources)
+        print(next.publish())
 
 
 def main():
@@ -36,7 +75,8 @@ def main():
     ltc = dataSource("ltc", "../data/ltc.csv")
     xbt = dataSource("xbt", "../data/xbt.csv")
     eth = dataSource("eth", "../data/eth.csv")
-    plotData(eth.p, eth.q, eth.t)
+    marketSim([xrp, ltc, xbt, eth])
+#    plotData(eth.p, eth.q, eth.t)
     
 
 if __name__ == '__main__': 
