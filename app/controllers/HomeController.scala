@@ -6,10 +6,13 @@ import play.api.mvc._
 import org.apache.spark.sql.SparkSession
 
 @Singleton
-class HomeController @Inject()(cc: ControllerComponents, spark: SparkSession) (implicit assetsFinder: AssetsFinder)
+class HomeController @Inject()(cc: ControllerComponents, sparkSession: SparkSession) (implicit assetsFinder: AssetsFinder)
   extends AbstractController(cc) {
 
   def index = Action {
+    val df = sparkSession.read.format("com.databricks.spark.csv").option("header", "true").option("inferSchema", "true").load("data/eth.csv")
+    println("asdjaskjndkjansdkjsdnjkands")
+    println(df.count)
     Ok(views.html.index("Your new application is ready."))
   }
 
