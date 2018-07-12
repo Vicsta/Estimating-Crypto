@@ -5,9 +5,8 @@ def clean(file : String) : org.apache.spark.sql.DataFrame = {
   val data = sqlContext.read.format("com.databricks.spark.csv").option("header", "true").option("inferSchema", "true").load(file)
   //drop null column and NaN rows and drop empty column
   val dropped = data.na.drop.drop("")
-  val timestampRenamed = dropped.withColumnRenamed("timestamp", "timestamp_seconds")
   val convert_millis = udf((v: Double) => (v * 1000).toLong )
-  val converted = timestampRenamed.withColumn("timestamp", convert_millis($"timestamp_seconds")).drop("timestamp_seconds")
+  val converted = dropped.withColumnRenamed("timestamp", "timestamp_seconds").withColumn("timestamp", convert_millis($"timestamp_seconds")).drop("timestamp_seconds")
   val sorted = converted.sort("timestamp")
   return sorted
 }
