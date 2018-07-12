@@ -9,4 +9,4 @@ def clean(file : String) : org.apache.spark.sql.DataFrame = {
 }
 
 
-val data = clean("valhalla/BCHUSD.csv")
+val clean_data = clean("valhalla/BCHUSD.csv")
