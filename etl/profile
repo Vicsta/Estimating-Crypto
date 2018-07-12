@@ -6,9 +6,7 @@ def profile(file : String) = {
   println(file)
   println("===========================")
   val data = sqlContext.read.format("com.databricks.spark.csv").option("header", "true").option("inferSchema", "true").load(file)
-  val schema = data.schema
-  println("schema")
-  println(schema)
+  data.printSchema
   val max_values = data.agg(max("price"), max("quantity"), max("timestamp")).first
   println("max_values [max('price'), max('quantity'), max('timestamp')]")
   println(max_values)

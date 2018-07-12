@@ -3,8 +3,9 @@
 
 def clean(file : String) : org.apache.spark.sql.DataFrame = {
   val data = sqlContext.read.format("com.databricks.spark.csv").option("header", "true").option("inferSchema", "true").load(file)
-  //drop null column and NaN rows
-  val dropped = data.na.drop
+  //drop null column and NaN rows and drop empty column
+  val dropped = data.na.drop.drop("")
+
   return dropped;
 }
 
