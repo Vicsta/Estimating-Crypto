@@ -7,6 +7,8 @@ def profile(data : org.apache.spark.sql.DataFrame) = {
   println("===========================")
   println("row count")
   println(data.count)
+  println("estimated size")
+  println(org.apache.spark.util.SizeEstimator.estimate(data))
   val max_values = data.agg(max("price"), max("quantity"), max("timestamp")).first
   println("max_values [max('price'), max('quantity'), max('timestamp')]")
   println(max_values)
