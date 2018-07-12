@@ -3,13 +3,14 @@ package controllers
 import javax.inject._
 
 import play.api.mvc._
+import org.apache.spark.sql.SparkSession
 
 /**
  * This controller creates an `Action` to handle HTTP requests to the
  * application's home page.
  */
 @Singleton
-class HomeController @Inject()(cc: ControllerComponents) (implicit assetsFinder: AssetsFinder)
+class HomeController @Inject()(cc: ControllerComponents, spark: SparkSession) (implicit assetsFinder: AssetsFinder)
   extends AbstractController(cc) {
 
   /**
