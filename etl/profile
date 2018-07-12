@@ -1,0 +1,30 @@
+#Run the spark shell with csv support.
+#spark-shell --packages com.databricks:spark-csv_2.11:1.2.0
+
+def profile(file : String) = {
+  println("===========================")
+  println(file)
+  println("===========================")
+  val data = sqlContext.read.format("com.databricks.spark.csv").option("header", "true").option("inferSchema", "true").load(file)
+  val schema = data.schema
+  println("schema")
+  println(schema)
+  val max_values = data.agg(max("price"), max("quantity"), max("timestamp")).first
+  println("max_values [max('price'), max('quantity'), max('timestamp')]")
+  println(max_values)
+  val min_values = data.agg(min("price"), min("quantity"), min("timestamp")).first
+  println("min_values [min('price'), min('quantity'), min('timestamp')]")
+  println(min_values)
+  val avg_values = data.agg(avg("price"), avg("quantity"), avg("timestamp")).first
+  println("avg_values [avg('price'), avg('quantity'), avg('timestamp')]")
+  println(avg_values)
+  val distinct_limit_or_market_values = data.select(data("limit_or_market")).distinct.collect.mkString(", ")
+  println("distinct_limit_or_market_values")
+  println(distinct_limit_or_market_values)
+  val distinct_buy_or_sell_values = data.select(data("buy_or_sell")).distinct.collect.mkString(", ")
+  println("distinct_buy_or_sell_values")
+  println(distinct_buy_or_sell_values)
+}
+
+
+profile("valhalla/BCHUSD.csv")

@@ -1,0 +1,12 @@
+#Run the spark shell with csv support.
+#spark-shell --packages com.databricks:spark-csv_2.11:1.2.0
+
+def clean(file : String) : org.apache.spark.sql.DataFrame = {
+  val data = sqlContext.read.format("com.databricks.spark.csv").option("header", "true").option("inferSchema", "true").load(file)
+  //drop null column and NaN rows
+  val dropped = data.na.drop
+  return dropped;
+}
+
+
+val data = clean("valhalla/BCHUSD.csv")
