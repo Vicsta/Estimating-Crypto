@@ -5,6 +5,8 @@ def profile(data : org.apache.spark.sql.DataFrame) = {
   println("===========================")
   data.printSchema
   println("===========================")
+  println("row count")
+  println(data.count)
   val max_values = data.agg(max("price"), max("quantity"), max("timestamp")).first
   println("max_values [max('price'), max('quantity'), max('timestamp')]")
   println(max_values)
