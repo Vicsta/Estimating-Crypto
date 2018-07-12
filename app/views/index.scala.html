@@ -1,4 +1,4 @@
-@(message: String)(implicit assetsFinder: AssetsFinder)
+@(message: String, df: org.apache.spark.sql.DataFrame)(implicit assetsFinder: AssetsFinder)
 
 @*
  * Call the `main` template with two arguments. The first
@@ -7,5 +7,13 @@
  *@
 @main("Hello Valhalla", assetsFinder) {
   <h1>Hello Valhalla</h1>
-  <div id="graph"></div>
+  @df.count results
+  @for(value <- df.take(10)) {
+      <div>
+        @value
+      </div>
+  }
+  <div id="graph">
+    Graph goes here
+  </div>
 }
