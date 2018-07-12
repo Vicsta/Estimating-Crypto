@@ -14,4 +14,9 @@ class HomeController @Inject()(cc: ControllerComponents, sparkSession: SparkSess
     Ok(views.html.index(df))
   }
 
+  def data = Action {
+    val df = sparkSession.read.format("com.databricks.spark.csv").option("header", "true").option("inferSchema", "true").load("data/eth.csv")
+    Ok(views.html.index(df))
+  }
+
 }
