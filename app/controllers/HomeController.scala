@@ -11,7 +11,7 @@ class HomeController @Inject()(cc: ControllerComponents, sparkSession: SparkSess
 
   def index = Action {
     val df = sparkSession.read.format("com.databricks.spark.csv").option("header", "true").option("inferSchema", "true").load("data/eth.csv")
-    Ok(views.html.index("Your new application is ready.", df))
+    Ok(views.html.index(df))
   }
 
 }
