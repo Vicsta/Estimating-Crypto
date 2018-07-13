@@ -41,7 +41,6 @@ is_cygwin() {
   esac
 }
 
-# TODO - Use nicer bash-isms here.
 CYGWIN_FLAG=$(if is_cygwin; then echo true; else echo false; fi)
 
 
@@ -98,7 +97,7 @@ Usage: $script_name [options]
                      prepended to the runner args
   /etc/sbt/sbtopts   if this file exists, it is prepended to the runner args
   -Dkey=val          pass -Dkey=val directly to the java runtime
-  -J-X               pass option -X directly to the java runtime 
+  -J-X               pass option -X directly to the java runtime
                      (-J is stripped)
   -S-X               add -X to sbt's scalacOptions (-S is stripped)
 
@@ -125,9 +124,9 @@ process_my_args () {
               *) addResidual "$1" && shift ;;
     esac
   done
-  
+
   # Now, ensure sbt version is used.
-  [[ "${sbt_version}XXX" != "XXX" ]] && addJava "-Dsbt.version=$sbt_version" 
+  [[ "${sbt_version}XXX" != "XXX" ]] && addJava "-Dsbt.version=$sbt_version"
 }
 
 loadConfigFile() {
@@ -136,7 +135,6 @@ loadConfigFile() {
   done
 }
 
-# TODO - Pull in config based on operating system... (MSYS + cygwin should pull in txt file).
 # Here we pull in the global settings configuration.
 [[ -f "$etc_sbt_opts_file" ]] && set -- $(loadConfigFile "$etc_sbt_opts_file") "$@"
 # -- Windows behavior stub'd
@@ -148,4 +146,3 @@ loadConfigFile() {
 
 
 run "$@"
-

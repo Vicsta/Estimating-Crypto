@@ -4,8 +4,6 @@
 # A library to simplify using the SBT launcher from other packages.
 # Note: This should be used by tools like giter8/conscript etc.
 
-# TODO - Should we merge the main SBT script with this library?
-
 declare -a residual_args
 declare -a java_args
 declare -a scalac_args
@@ -135,7 +133,7 @@ process_args () {
               *) addResidual "$1" && shift ;;
     esac
   done
-  
+
   is_function_defined process_my_args && {
     myargs=("${residual_args[@]}")
     residual_args=()
@@ -183,7 +181,6 @@ run() {
   set -- "${residual_args[@]}"
   argumentCount=$#
 
-  # TODO - java check should be configurable...
   checkJava "1.6"
 
   #If we're in cygwin, we should use the windows config, and terminal hacks
@@ -201,8 +198,8 @@ run() {
     ${java_args[@]} \
     -jar "$sbt_jar" \
     "${sbt_commands[@]}" \
-    "${residual_args[@]}"  
-  
+    "${residual_args[@]}"
+
   exit_code=$?
 
   # Clean up the terminal from cygwin hacks.

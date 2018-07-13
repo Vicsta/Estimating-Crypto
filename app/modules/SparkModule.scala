@@ -7,6 +7,7 @@ import play.api._
 class SparkModule extends AbstractModule {
 
   def configure() = {
+    //TODO connect to dumbo spark
     val sparkSession = SparkSession.builder
       .master("local")
       .appName("Valhalla")
