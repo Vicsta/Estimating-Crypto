@@ -3,6 +3,8 @@ package controllers
 import javax.inject._
 
 import java.io.File
+import java.io.PipedOutputStream
+import java.io.PipedInputStream
 import play.api.mvc._
 import play.api.libs.iteratee.Enumerator
 import org.apache.spark.sql.SparkSession
@@ -34,18 +36,23 @@ class ReportController @Inject()(cc: ControllerComponents, sparkSession: SparkSe
 
   def getData(pair: String) : InputStream = {
     val df = sparkSession.read.format("com.databricks.spark.csv").option("header", "true").option("inferSchema", "true").load("data/" + pair + ".csv")
-    val out = new ByteArrayOutputStream()
+    val out = new PipedOutputStream()
+    val in = new PipedInputStream()
     val writer = new PrintWriter(new OutputStreamWriter(out))
     val header = df.columns.mkString(",")
     writer.println(header)
-    df.collect.foreach((row)=> {
-        val line = row.mkString(",")
-        writer.println(line)
+		in.connect(out);
+		val pipeWriter = new Thread(new Runnable() {
+      def run(): Unit = {
+        df.collect.foreach((row)=> {
+            val line = row.mkString(",")
+            writer.println(line)
+          }
+        )
+        writer.close()
       }
-    )
-    writer.flush()
-    //TODO stream , not a full read/write
-    // probably fine not too, but would not work well with larger data
-    return new ByteArrayInputStream(out.toByteArray())
+    })
+    pipeWriter.start()
+    return in
   }
 }
