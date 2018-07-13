@@ -26,7 +26,7 @@
         .x(function(d) { return x(d.date); })
         .y(function(d) { return y(d.price); });
 
-    d3.csv('/data.csv', function(d) {
+    d3.csv('/data.csv?pair=eth', function(d) {
       d.date = parseTime(d.timestamp);
       d.price = +d.price;
       return d;
