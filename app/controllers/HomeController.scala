@@ -28,6 +28,7 @@ class HomeController @Inject()(cc: ControllerComponents, sparkSession: SparkSess
     val file = new java.io.File("data/eth.csv")
     val path = file.toPath();
     val source: Source[ByteString, _] = FileIO.fromPath(path)
+    //TODO stream from dataframe not the file csv
     Result(
         header = ResponseHeader(200, Map.empty),
         body =  HttpEntity.Streamed(source, None, Some("text/csv"))
