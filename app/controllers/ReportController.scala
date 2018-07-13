@@ -16,12 +16,23 @@ import akka.util.ByteString
 import java.io.{InputStream, ByteArrayInputStream, ByteArrayOutputStream, PrintWriter, OutputStreamWriter}
 
 @Singleton
-class HomeController @Inject()(cc: ControllerComponents, sparkSession: SparkSession) (implicit assetsFinder: AssetsFinder)
+class ReportController @Inject()(cc: ControllerComponents, sparkSession: SparkSession) (implicit assetsFinder: AssetsFinder)
   extends AbstractController(cc) {
 
   def index = Action {
     val df = sparkSession.read.format("com.databricks.spark.csv").option("header", "true").option("inferSchema", "true").load("data/eth.csv")
     Ok(views.html.index(df))
+  }
+
+  def data = Action {
+    val df = sparkSession.read.format("com.databricks.spark.csv").option("header", "true").option("inferSchema", "true").load("data/eth.csv")
+    val file = new java.io.File("data/eth.csv")
+    val path = file.toPath();
+    val source: Source[ByteString, _] = StreamConverters.fromInputStream(()=> getData(df))
+    Result(
+        header = ResponseHeader(200, Map.empty),
+        body =  HttpEntity.Streamed(source, None, Some("text/csv"))
+    )
   }
 
   def getData(df: org.apache.spark.sql.DataFrame) : InputStream = {
@@ -35,19 +46,7 @@ class HomeController @Inject()(cc: ControllerComponents, sparkSession: SparkSess
       }
     )
     writer.flush()
-    println(out.toByteArray().length)
     //TODO stream , not a full read/write
     return new ByteArrayInputStream(out.toByteArray())
   }
-  def data = Action {
-    val df = sparkSession.read.format("com.databricks.spark.csv").option("header", "true").option("inferSchema", "true").load("data/eth.csv")
-    val file = new java.io.File("data/eth.csv")
-    val path = file.toPath();
-    val source: Source[ByteString, _] = StreamConverters.fromInputStream(()=> getData(df))
-    Result(
-        header = ResponseHeader(200, Map.empty),
-        body =  HttpEntity.Streamed(source, None, Some("text/csv"))
-    )
-  }
-
 }
