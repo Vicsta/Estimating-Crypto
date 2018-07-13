@@ -44,11 +44,12 @@ class ReportController @Inject()(cc: ControllerComponents, sparkSession: SparkSe
 		in.connect(out);
 		val pipeWriter = new Thread(new Runnable() {
       def run(): Unit = {
-        df.collect.foreach((row)=> {
-            val line = row.mkString(",")
-            writer.println(line)
-          }
-        )
+        val iterator = df.toLocalIterator
+        while(iterator.hasNext) {
+          val row = iterator.next
+          val line = row.mkString(",")
+          writer.println(line)
+        }
         writer.close()
       }
     })
