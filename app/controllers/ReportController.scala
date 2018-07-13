@@ -47,6 +47,7 @@ class ReportController @Inject()(cc: ControllerComponents, sparkSession: SparkSe
     )
     writer.flush()
     //TODO stream , not a full read/write
+    // probably fine not too, but would not work well with larger data
     return new ByteArrayInputStream(out.toByteArray())
   }
 }
