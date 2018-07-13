@@ -1,26 +1,20 @@
 @(df: org.apache.spark.sql.DataFrame)(implicit assetsFinder: AssetsFinder)
 
 @main("Hello Valhalla", assetsFinder) {
-  <h1>Hello Valhalla</h1>
-  @df.count results
-  @for(value <- df.take(10)) {
-      <div>
-        @value
-      </div>
-  }
-
   <svg width="960" height="500"></svg>
 
 
   <script>
-    console.log("d3 me")
     var svg = d3.select("svg"),
     margin = {top: 20, right: 20, bottom: 30, left: 50},
     width = +svg.attr("width") - margin.left - margin.right,
     height = +svg.attr("height") - margin.top - margin.bottom,
     g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-    var parseTime = d3.timeParse("%d-%b-%y");
+    var parseTime = function(time) {
+      timestamp = Math.trunc(parseFloat(time) * 1000)
+      return new Date(timestamp)
+    }
 
     var x = d3.scaleTime()
         .rangeRound([0, width]);
@@ -30,17 +24,17 @@
 
     var line = d3.line()
         .x(function(d) { return x(d.date); })
-        .y(function(d) { return y(d.close); });
+        .y(function(d) { return y(d.price); });
 
-    d3.tsv('@assetsFinder.path("data.tsv")', function(d) {
-      d.date = parseTime(d.date);
-      d.close = +d.close;
+    d3.csv('/data.csv', function(d) {
+      d.date = parseTime(d.timestamp);
+      d.price = +d.price;
       return d;
     }, function(error, data) {
       if (error) throw error;
 
       x.domain(d3.extent(data, function(d) { return d.date; }));
-      y.domain(d3.extent(data, function(d) { return d.close; }));
+      y.domain(d3.extent(data, function(d) { return d.price; }));
 
       g.append("g")
           .attr("transform", "translate(0," + height + ")")
