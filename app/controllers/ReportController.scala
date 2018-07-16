@@ -35,6 +35,7 @@ class ReportController @Inject()(cc: ControllerComponents, sparkSession: SparkSe
   }
 
   def getData(pair: String) : InputStream = {
+    // val df = sparkSession.read.format("com.databricks.spark.csv").option("header", "true").option("inferSchema", "true").load("hdfs://babar.es.its.nyu.edu:8020/user/pjv253/valhalla/" + pair + ".csv")
     val df = sparkSession.read.format("com.databricks.spark.csv").option("header", "true").option("inferSchema", "true").load("data/" + pair + ".csv")
     val out = new PipedOutputStream()
     val in = new PipedInputStream()
