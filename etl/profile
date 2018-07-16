@@ -5,7 +5,8 @@ def profile(pair : String) = {
   println("===========================")
   println("PROFILING", pair)
   val data = sqlContext.read.format("com.databricks.spark.csv")
-      .option("header", "true").option("inferSchema", "true").load("/user/pjv253/valhalla/" + pair + "_CLEAN.csv")
+      .option("header", "true").option("inferSchema", "true")
+      .load("/user/pjv253/valhalla/" + pair + "_CLEAN.csv")
   println("===========================")
   data.printSchema
   println("===========================")
@@ -27,7 +28,8 @@ def profile(pair : String) = {
       println("avg", data.agg(avg(field.name)).first)
     } else {
       if(data.select(data(field.name)).distinct.count < 100) {
-        println("distinct values", data.select(data("limit_or_market")).distinct.collect.mkString(", "))
+        println("distinct values", data.select(data("limit_or_market"))
+                .distinct.collect.mkString(", "))
       }
     }
   })
