@@ -1,30 +1,37 @@
 #Run the spark shell with csv support.
 #spark-shell --packages com.databricks:spark-csv_2.11:1.2.0
 
-def profile(data : org.apache.spark.sql.DataFrame) = {
+def profile(pair : String) = {
+  println("===========================")
+  println("PROFILING", pair)
+  val data = sqlContext.read.format("com.databricks.spark.csv")
+      .option("header", "true").option("inferSchema", "true").load("/user/pjv253/valhalla/" + pair + "_CLEAN.csv")
   println("===========================")
   data.printSchema
   println("===========================")
-  println("row count")
-  println(data.count)
-  println("estimated size")
-  println(org.apache.spark.util.SizeEstimator.estimate(data))
-  val max_values = data.agg(max("price"), max("quantity"), max("timestamp")).first
-  println("max_values [max('price'), max('quantity'), max('timestamp')]")
-  println(max_values)
-  val min_values = data.agg(min("price"), min("quantity"), min("timestamp")).first
-  println("min_values [min('price'), min('quantity'), min('timestamp')]")
-  println(min_values)
-  val avg_values = data.agg(avg("price"), avg("quantity"), avg("timestamp")).first
-  println("avg_values [avg('price'), avg('quantity'), avg('timestamp')]")
-  println(avg_values)
-  val distinct_limit_or_market_values = data.select(data("limit_or_market")).distinct.collect.mkString(", ")
-  println("distinct_limit_or_market_values")
-  println(distinct_limit_or_market_values)
-  val distinct_buy_or_sell_values = data.select(data("buy_or_sell")).distinct.collect.mkString(", ")
-  println("distinct_buy_or_sell_values")
-  println(distinct_buy_or_sell_values)
+  println("row_count", data.count)
+  println("===========================")
+  println("estimated_size_bytes", org.apache.spark.util.SizeEstimator.estimate(data))
+  println("===========================")
+  println("fields")
+  data.schema.fields.foreach((field)=> {
+    println("---------------------------")
+    println(field.name)
+    println(field.dataType)
+    if(field.dataType == org.apache.spark.sql.types.DoubleType ||
+      field.dataType == org.apache.spark.sql.types.LongType ||
+      field.dataType == org.apache.spark.sql.types.IntegerType ||
+      field.dataType == org.apache.spark.sql.types.TimestampType) {
+      println("max", data.agg(max(field.name)).first)
+      println("min", data.agg(min(field.name)).first)
+      println("avg", data.agg(avg(field.name)).first)
+    } else {
+      if(data.select(data(field.name)).distinct.count < 100) {
+        println("distinct values", data.select(data("limit_or_market")).distinct.collect.mkString(", "))
+      }
+    }
+  })
 }
 
 
-profile(clean("valhalla/BCHUSD.csv"))
+Array("XETHZUSD", "XLTCZUSD", "XXBTZUSD", "XXRPZUSD").foreach(profile)

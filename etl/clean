@@ -1,15 +1,19 @@
 #Run the spark shell with csv support.
 #spark-shell --packages com.databricks:spark-csv_2.11:1.2.0
 
-def clean(file : String) : org.apache.spark.sql.DataFrame = {
-  val data = sqlContext.read.format("com.databricks.spark.csv").option("header", "true").option("inferSchema", "true").load(file)
+def clean(pair : String) : org.apache.spark.sql.DataFrame = {
+  val data = sqlContext.read.format("com.databricks.spark.csv")
+      .option("header", "true").option("inferSchema", "true").load("/user/pjv253/valhalla/" + pair + ".csv")
   //drop null column and NaN rows and drop empty column
   val dropped = data.na.drop.drop("")
   val convert_millis = udf((v: Double) => (v * 1000).toLong )
-  val converted = dropped.withColumnRenamed("timestamp", "timestamp_seconds").withColumn("timestamp", convert_millis($"timestamp_seconds")).drop("timestamp_seconds")
+  val converted = dropped.withColumnRenamed("timestamp", "timestamp_seconds")
+      .withColumn("timestamp", convert_millis($"timestamp_seconds")).drop("timestamp_seconds")
   val sorted = converted.sort("timestamp")
+  sorted.write.format("com.databricks.spark.csv").option("header", "true")
+      .save("/user/pjv253/valhalla/" + pair + "_CLEAN.csv")
   return sorted
 }
 
 
-val clean_data = clean("valhalla/BCHUSD.csv")
+Array("XETHZUSD", "XLTCZUSD", "XXBTZUSD", "XXRPZUSD").foreach(clean)
