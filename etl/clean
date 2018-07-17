@@ -10,25 +10,13 @@ def clean(pair : String) : org.apache.spark.sql.DataFrame = {
   val converted = dropped.withColumnRenamed("timestamp", "timestamp_seconds")
       .withColumn("timestamp", convert_millis($"timestamp_seconds")).drop("timestamp_seconds")
   val sorted = converted.sort("timestamp")
-  val convert_window = (w:Long) => {
-    udf((timestamp: Long) => timestamp / w )
-  }
-  var windowed = sorted
-  windowed = windowed.withColumn("window_1_minute", convert_window(1000 * 60)($"timestamp"))
-  windowed = windowed.withColumn("window_5_minute", convert_window(1000 * 60*5)($"timestamp"))
-  windowed = windowed.withColumn("window_15_minute", convert_window(1000 * 60*15)($"timestamp"))
-  windowed = windowed.withColumn("window_1_hour", convert_window(1000 * 60*60)($"timestamp"))
-  windowed = windowed.withColumn("window_1_day", convert_window(1000 * 60*60*24)($"timestamp"))
-  windowed = windowed.withColumn("window_7_day", convert_window(1000 * 60*60*24*7)($"timestamp"))
-  windowed = windowed.withColumn("window_30_day", convert_window(1000 * 60*60*24*30)($"timestamp"))
-
   val file = "/user/pjv253/valhalla/" + pair + "_CLEAN.csv"
   val fs=org.apache.hadoop.fs.FileSystem.get(sc.hadoopConfiguration)
   if(fs.exists(new org.apache.hadoop.fs.Path(file)))
     fs.delete(new org.apache.hadoop.fs.Path(file),true)
-    windowed.write.format("com.databricks.spark.csv").option("header", "true")
+    sorted.write.format("com.databricks.spark.csv").option("header", "true")
       .save(file)
-  return windowed
+  return sorted
 }
 
 
