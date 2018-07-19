@@ -37,5 +37,4 @@ def merge(currencies : Array[String]) : org.apache.spark.sql.DataFrame = {
   return merged
 }
 
-
 merge(Array("XETHZUSD", "XLTCZUSD", "XXBTZUSD", "XXRPZUSD"))
