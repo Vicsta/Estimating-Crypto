@@ -117,22 +117,32 @@ window.addEventListener('load', function () {
     }
 
     let colors = {
-      "eth" : "steelblue",
-      "ltc" : "orange",
-      "xbt" : "green",
-      "xrp" : "red"
+        "eth" : "steelblue",
+        "ltc" : "orange",
+        "xbt" : "green",
+        "xrp" : "red"
     };
 
-    let checkBoxes = document.getElementById("graphSelect").getElementsByTagName("input");
+    let parentInput = document.getElementById("graphSelect");
+    let boxes = 0;
     for(let key in colors) {
-        for (let i = 0; i < checkBoxes.length; i++) {
-            if (checkBoxes[i].name === key) {
-                checkBoxes[i].onclick = function () {
-                    this.disabled = true;
-                    toggleLine(this.name, this.checked, colors[key], this);
-                };
-                drawLine(key, {color: colors[key]}, this);
-            }
+        let newInput = document.createElement("input");
+        newInput.type = "checkbox";
+        newInput.name = key;
+        newInput.checked = true;
+        newInput.onclick = function () {
+            this.disabled = true;
+            toggleLine(this.name, this.checked, colors[key], this);
+        };
+        drawLine(key, {color: colors[key]}, this);
+        parentInput.append(key.toUpperCase());
+        parentInput.appendChild(newInput);
+        boxes++;
+        if(boxes % 3 === 0) {
+            boxes = 0;
+            parentInput.appendChild(document.createElement("br"));
+        } else {
+            parentInput.append("\t");
         }
     }
 
