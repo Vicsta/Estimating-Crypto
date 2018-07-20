@@ -2,7 +2,6 @@
 #spark-shell --packages com.databricks:spark-csv_2.11:1.2.0
 
 def clean(pair : String) : org.apache.spark.sql.DataFrame = {
-  val pair = "XLTCZUSD"
   val data = sqlContext.read.format("com.databricks.spark.csv").option("header", "true").option("inferSchema", "true").load("/user/pjv253/valhalla/" + pair + ".csv")
   val dropped = data.na.drop.drop("")
   val convert_millis = udf((v: Double) => (v * 1000).toLong )
