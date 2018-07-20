@@ -35,5 +35,5 @@ def profile(pair : String) = {
   })
 }
 
-
-Array("XETHZUSD", "XLTCZUSD", "XXBTZUSD", "XXRPZUSD").foreach(profile)
+val currencies = Array("XETHZUSD", "XLTCZUSD", "XXBTZUSD", "XXRPZUSD")
+currencies.foreach(profile)

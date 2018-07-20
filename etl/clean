@@ -36,5 +36,5 @@ def clean(pair : String) : org.apache.spark.sql.DataFrame = {
   return sorted
 }
 
-
-Array("XETHZUSD", "XLTCZUSD", "XXBTZUSD", "XXRPZUSD").foreach(clean)
+val currencies = Array("XETHZUSD", "XLTCZUSD", "XXBTZUSD", "XXRPZUSD")
+currencies.foreach(clean)
