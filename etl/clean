@@ -3,7 +3,7 @@
 def clean(pair : String) : org.apache.spark.sql.DataFrame = {
   val sqlContext = new org.apache.spark.sql.SQLContext(sc)
   val data = sqlContext.read.format("csv").option("header", "true").option("inferSchema", "true").load("/user/pjv253/valhalla/" + pair + ".csv")
-  val dropped = data.na.drop.drop(data.schema.fields(5).name)
+  val dropped = data.drop(data.schema.fields(5).name).na.drop
   val convert_millis = udf((v: Double) => (v * 1000).toLong )
   val converted = dropped.withColumnRenamed("timestamp", "timestamp_seconds").withColumn("timestamp", convert_millis($"timestamp_seconds")).drop("timestamp_seconds")
   val sorted = converted.sort("timestamp")
