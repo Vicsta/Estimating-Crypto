@@ -15,6 +15,8 @@ def createDf(dataDir: String, pair : String) = {
     .map(s => (s(0).toFloat, s(1).toFloat, (s(2).toFloat*1000.0f).toLong, s(3).toString, s(4).toString, s(5).toLong))
     .keyBy(_._6)
     .groupByKey()
+
+    // condense row based on weighed price
     def condense (s : (Long, Iterable[(Float, Float, Long, String, String, Long)])) = {
       val bucket = s._1
       val data = s._2.toArray
@@ -34,6 +36,15 @@ def createDf(dataDir: String, pair : String) = {
       (bucket, (weighted_px, qsum, data(last)._3, bucket))
      }
      var df = r.map(s => condense(s)).sortByKey().map(s => Trade(s._2._1, s._2._2, s._2._3, s._2._4)).toDF()
+
+     // create backward looking moving average price     
+     val lagBack = org.apache.spark.sql.expressions.Window.orderBy("bucket").rowsBetween(-10,0)
+     df = df.withColumn("ma_back", avg(df("price")).over(lagBack))
+
+     // create forward looking moving average price
+     val lagFwd = org.apache.spark.sql.expressions.Window.orderBy("bucket").rowsBetween(0,10)
+     df = df.withColumn("ma_fwd", avg(df("price")).over(lagFwd))
+
      val fields = df.schema.fields.toList
      fields.foreach((field) => {
         if(!field.name.equals("bucket")) {
