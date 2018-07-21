@@ -7,26 +7,24 @@ def clean(pair : String) : org.apache.spark.sql.DataFrame = {
   val convert_millis = udf((v: Double) => (v * 1000).toLong )
   val converted = dropped.withColumnRenamed("timestamp", "timestamp_seconds").withColumn("timestamp", convert_millis($"timestamp_seconds")).drop("timestamp_seconds")
   val sorted = converted.sort("timestamp")
-  var windowed = sorted
+  val january_epoch = 1514764800000L
+  val filtered = sorted.filter(converted("timestamp") >= january_epoch)
   val convert_window = (w:Long) => udf((timestamp: Long) => timestamp / w )
-  val partitioned = windowed.withColumn("bucket", convert_window(1000L * 60*60)($"timestamp"))
+  val partitioned = filtered.withColumn("bucket", convert_window(1000L * 60)($"timestamp"))
   val min_bucket = partitioned.select(min("bucket")).first().getLong(0).toInt
   val max_bucket = partitioned.select(max("bucket")).first().getLong(0).toInt
   val schema = List(org.apache.spark.sql.types.StructField("bucket", org.apache.spark.sql.types.LongType, true))
-  val range = sc.parallelize(Range(min_bucket, max_bucket, 1)).map(_.toLong).toDF("bucket")
-  val bucketed = range.join(partitioned, range("bucket") === partitioned("bucket"), "left_outer").drop(partitioned("bucket")).sort("timestamp")
+  val range = sc.parallelize(Range(min_bucket, max_bucket + 1, 1)).map(_.toLong).toDF("bucket")
+  val bucketed = range.join(partitioned, range("bucket") === partitioned("bucket"), "left").drop(partitioned("bucket"))
   var fill = bucketed
-  fill = fill.withColumn("partition", convert_window(1000L * 60*60*24*3)($"timestamp"))
-  val fields = fill.schema.fields.toList
-  fields.foreach((field)=> {
-    if(!field.name.equals("partition")) {
-      val forward = org.apache.spark.sql.expressions.Window.partitionBy("partition").orderBy("timestamp").rowsBetween(-1000000000, 0)
-      val filled_column_last = last(fill(field.name), true).over(forward)
-      fill = fill.withColumn(field.name + "_filled", filled_column_last )
-      fill = fill.drop(field.name).withColumnRenamed(field.name + "_filled", field.name)
-      val filled_column_first = first(fill(field.name)).over(forward)
-    }
-  })
+  fill = fill.withColumn("partition", convert_window(60*24*10)($"bucket"))
+  val forward = org.apache.spark.sql.expressions.Window.partitionBy("partition").orderBy("bucket","timestamp").rowsBetween(-14400, 0)
+  val filled_column_last = last(fill("price"), true).over(forward)
+  fill = fill.withColumn("price_filled", filled_column_last )
+  fill = fill.drop("price").withColumnRenamed("price_filled", "price")
+  fill = fill.sort("bucket", "timestamp")
+  fill = fill.drop("timestamp").drop("partition")
+
   val file = "/user/pjv253/valhalla/" + pair + "_CLEAN.csv"
   val path = new org.apache.hadoop.fs.Path(file)
   val fs=org.apache.hadoop.fs.FileSystem.get(sc.hadoopConfiguration)
