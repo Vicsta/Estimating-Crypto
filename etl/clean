@@ -9,9 +9,27 @@ def clean(pair : String) : org.apache.spark.sql.DataFrame = {
   val sorted = converted.sort("timestamp")
   var windowed = sorted
   val convert_window = (w:Long) => udf((timestamp: Long) => timestamp / w )
-  val partitioned = windowed.withColumn("partition", convert_window(1000L * 60*60*24*3)($"timestamp"))
-  val w = org.apache.spark.sql.expressions.Window.partitionBy($"partition").orderBy("timestamp").rowsBetween(-10,0)
+  val partitioned = windowed.withColumn("bucket", convert_window(1000L * 60*60)($"timestamp"))
+  val w = org.apache.spark.sql.expressions.Window.partitionBy($"bucket").orderBy("timestamp").rowsBetween(-10,0)
   val ma = partitioned.withColumn("ma", avg(windowed("price")).over(w))
+  val min_bucket = ma.select(min("bucket")).first().getLong(0).toInt
+  val max_bucket = ma.select(max("bucket")).first().getLong(0).toInt
+  val schema = List(org.apache.spark.sql.types.StructField("bucket", org.apache.spark.sql.types.LongType, true))
+  val range = sc.parallelize(Range(min_bucket, max_bucket, 1)).map(_.toLong).toDF("bucket")
+  val bucketed = range.join(ma, range("bucket") === ma("bucket"), "leftouter").drop(ma("bucket"))
+  var fill = bucketed
+  fill = fill.withColumn("partition", convert_window(1000L * 60*60*24*3)($"timestamp"))
+  val fields = fill.schema.fields.toList
+  fields.foreach((field)=> {
+    if(!field.name.equals("partition")) {
+      val forward = org.apache.spark.sql.expressions.Window.partitionBy("partition").orderBy("timestamp").rowsBetween(-1000000000, 0)
+      val filled_column_last = last(fill(field.name), true).over(forward)
+      fill = fill.withColumn(field.name + "_filled", filled_column_last )
+      fill = fill.drop(field.name).withColumnRenamed(field.name + "_filled", field.name)
+      val filled_column_first = first(fill(field.name)).over(forward)
+    }
+  })
+
   val file = "/user/pjv253/valhalla/" + pair + "_CLEAN.csv"
   val path = new org.apache.hadoop.fs.Path(file)
   val fs=org.apache.hadoop.fs.FileSystem.get(sc.hadoopConfiguration)
@@ -22,7 +40,6 @@ def clean(pair : String) : org.apache.spark.sql.DataFrame = {
   while (fileList.hasNext()) {
     fs.setPermission(fileList.next().getPath(),permission)
   }
-
   return sorted
 }
 
