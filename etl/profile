@@ -4,9 +4,7 @@ def profile(pair : String) = {
   val sqlContext = new org.apache.spark.sql.SQLContext(sc)
   println("===========================")
   println("PROFILING", pair)
-  val data = sqlContext.read.format("csv")
-      .option("header", "true").option("inferSchema", "true")
-      .load("/user/pjv253/valhalla/" + pair + "_CLEAN.csv")
+  val data = sqlContext.read.format("csv").option("header", "true").option("inferSchema", "true").load("/user/pjv253/valhalla/" + pair + "_CLEAN.csv")
   println("===========================")
   data.printSchema
   println("===========================")

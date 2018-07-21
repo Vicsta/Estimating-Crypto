@@ -3,13 +3,12 @@
 def merge(currencies : Array[String]) : org.apache.spark.sql.DataFrame = {
   val sqlContext = new org.apache.spark.sql.SQLContext(sc)
   val dataFrames: Map[String, org.apache.spark.sql.DataFrame] = currencies.map(pair => {
-      var data = sqlContext.read.format("csv")
-      .option("header", "true").option("inferSchema", "true").load("/user/pjv253/valhalla/" + pair + "_CLEAN.csv")
+      var data = sqlContext.read.format("csv").option("header", "true").option("inferSchema", "true").load("/user/pjv253/valhalla/" + pair + "_CLEAN.csv")
       val convert_window = (w:Long) => {
         udf((timestamp: Long) => (timestamp / w) * w  )
       }
       data = data.withColumn("timestamp", convert_window(1000L * 60)($"timestamp"))
-      data = data.groupBy("timestamp").agg(avg("price"), avg("ema"))
+      data = data.groupBy("timestamp").agg(avg("price"), avg("ma"))
       val fields = data.schema.fields.toList
       fields.foreach((field)=> {
         if(!field.name.equals("timestamp")) {
@@ -48,7 +47,7 @@ def merge(currencies : Array[String]) : org.apache.spark.sql.DataFrame = {
   val path = new org.apache.hadoop.fs.Path(file)
   val fs=org.apache.hadoop.fs.FileSystem.get(sc.hadoopConfiguration)
   fs.delete(path, true)
-  fill.repartition($"timestamp").coalesce(1).write.format("csv").option("header", "true").save(file)
+  fill.repartition($"timestamp").write.format("csv").option("header", "true").save(file)
   val fileList = fs.listFiles(path, true)
   val permission = new org.apache.hadoop.fs.permission.FsPermission(org.apache.hadoop.fs.permission.FsAction.ALL,org.apache.hadoop.fs.permission.FsAction.READ_EXECUTE,org.apache.hadoop.fs.permission.FsAction.READ_EXECUTE)
   while (fileList.hasNext()) {
