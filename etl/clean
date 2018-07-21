@@ -1,8 +1,8 @@
-#Run the spark shell with csv support.
-#spark-shell --packages com.databricks:spark-csv_2.11:1.2.0
+//spark2-shell
 
 def clean(pair : String) : org.apache.spark.sql.DataFrame = {
-  val data = sqlContext.read.format("com.databricks.spark.csv").option("header", "true").option("inferSchema", "true").load("/user/pjv253/valhalla/" + pair + ".csv")
+  val sqlContext = new org.apache.spark.sql.SQLContext(sc)
+  val data = sqlContext.read.format("csv").option("header", "true").option("inferSchema", "true").load("/user/pjv253/valhalla/" + pair + ".csv")
   val dropped = data.na.drop.drop("")
   val convert_millis = udf((v: Double) => (v * 1000).toLong )
   val converted = dropped.withColumnRenamed("timestamp", "timestamp_seconds").withColumn("timestamp", convert_millis($"timestamp_seconds")).drop("timestamp_seconds")

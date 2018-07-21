@@ -1,9 +1,9 @@
-#Run the spark shell with csv support.
-#spark-shell --packages com.databricks:spark-csv_2.11:1.2.0
+//spark2-shell
 
 def merge(currencies : Array[String]) : org.apache.spark.sql.DataFrame = {
+  val sqlContext = new org.apache.spark.sql.SQLContext(sc)
   val dataFrames: Map[String, org.apache.spark.sql.DataFrame] = currencies.map(pair => {
-      var data = sqlContext.read.format("com.databricks.spark.csv")
+      var data = sqlContext.read.format("csv")
       .option("header", "true").option("inferSchema", "true").load("/user/pjv253/valhalla/" + pair + "_CLEAN.csv")
       val convert_window = (w:Long) => {
         udf((timestamp: Long) => (timestamp / w) * w  )
@@ -28,11 +28,27 @@ def merge(currencies : Array[String]) : org.apache.spark.sql.DataFrame = {
     }
   })
 
+  var fill = merged
+  val convert_window = (w:Long) => udf((timestamp: Long) => timestamp / w )
+  fill = fill.withColumn("partition", convert_window(1000L * 60*60*24*3)($"timestamp"))
+  val fields = fill.schema.fields.toList
+  fields.foreach((field)=> {
+    if(!field.name.equals("timestamp")) {
+      val forward = org.apache.spark.sql.expressions.Window.partitionBy("partition").orderBy("timestamp").rowsBetween(-1000000000, 0)
+      val filled_column_last = last(fill(field.name), true).over(forward)
+      fill = fill.withColumn(field.name + "_filled", filled_column_last )
+      fill = fill.drop(field.name).withColumnRenamed(field.name + "_filled", field.name)
+      val filled_column_first = first(fill(field.name)).over(forward)
+    }
+  })
+
+  fill = fill.na.drop
+
   val file = "/user/pjv253/valhalla/merged_CLEAN.csv"
   val path = new org.apache.hadoop.fs.Path(file)
   val fs=org.apache.hadoop.fs.FileSystem.get(sc.hadoopConfiguration)
   fs.delete(path, true)
-  merged.repartition($"timestamp").coalesce(1).write.format("com.databricks.spark.csv").option("header", "true").save(file)
+  fill.repartition($"timestamp").coalesce(1).write.format("com.databricks.spark.csv").option("header", "true").save(file)
   val fileList = fs.listFiles(path, true)
   val permission = new org.apache.hadoop.fs.permission.FsPermission(org.apache.hadoop.fs.permission.FsAction.ALL,org.apache.hadoop.fs.permission.FsAction.READ_EXECUTE,org.apache.hadoop.fs.permission.FsAction.READ_EXECUTE)
   while (fileList.hasNext()) {
