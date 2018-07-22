@@ -1,5 +1,22 @@
 //spark2-shell
 
+val min_bucket = partitioned.select(min("bucket")).first().getLong(0).toInt
+val max_bucket = partitioned.select(max("bucket")).first().getLong(0).toInt
+val schema = List(org.apache.spark.sql.types.StructField("bucket", org.apache.spark.sql.types.LongType, true))
+val range = sc.parallelize(Range(min_bucket, max_bucket + 1, 1)).map(_.toLong).toDF("bucket")
+val bucketed = range.join(partitioned, range("bucket") === partitioned("bucket"), "left").drop(partitioned("bucket"))
+var fill = bucketed
+
+val convert_window = (w:Long) => udf((timestamp: Long) => timestamp / w )
+fill = fill.withColumn("partition", convert_window(60*24*10)($"bucket"))
+val forward = org.apache.spark.sql.expressions.Window.partitionBy("partition").orderBy("bucket","timestamp").rowsBetween(-14400, 0)
+val filled_column_last = last(fill("price"), true).over(forward)
+fill = fill.withColumn("price_filled", filled_column_last )
+fill = fill.drop("price").withColumnRenamed("price_filled", "price")
+fill = fill.sort("bucket", "timestamp")
+fill = fill.drop("timestamp").drop("partition")
+val grouped = fill.groupBy("bucket").agg(collect_list("price"))
+
 def merge(currencies : Array[String]) : org.apache.spark.sql.DataFrame = {
   val sqlContext = new org.apache.spark.sql.SQLContext(sc)
   val dataFrames: Map[String, org.apache.spark.sql.DataFrame] = currencies.map(pair => {
