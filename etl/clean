@@ -26,7 +26,7 @@ def clean(pair : String) : org.apache.spark.sql.DataFrame = {
   })
   var bucketed = partitioned.groupBy("bucket").agg(collect_list(col("price")) as "price", collect_list(col("quantity")) as "quantity").withColumn("price", weighted_price(col("price"), col("quantity"))).drop("quantity")
   val make_partition = () => udf((timestamp: Long) => timestamp / (60*24*3) )
-  bucketed = bucketed.withColumn("bucket", make_partition()($"bucket"))
+  bucketed = bucketed.withColumn("partition", make_partition()($"bucket"))
   val sorted = bucketed.sort("bucket")
 
   val lagBack = org.apache.spark.sql.expressions.Window.partitionBy("partition").orderBy("bucket").rowsBetween(-10,0)
