@@ -28,7 +28,7 @@ def merge(currencies : Array[String]) : org.apache.spark.sql.DataFrame = {
       data = data.groupBy("timestamp").agg(avg("price"), avg("ma"))
       val fields = data.schema.fields.toList
       fields.foreach((field)=> {
-        if(!field.name.equals("timestamp")) {
+        if(!field.name.equals("bucket")) {
           data = data.withColumnRenamed(field.name, pair + "_" + field.name)
         }
       })
