@@ -1,5 +1,7 @@
 import org.apache.spark.ml.regression.LinearRegression
 import org.apache.spark.ml.linalg.Vectors
+import org.apache.spark.ml.feature.Normalizer
+import org.apache.spark.ml.feature.StandardScaler
 import org.apache.spark.sql._
 
 case class Trade(price: Double, qty: Double, time: Long, bucket: Long)
@@ -82,23 +84,6 @@ def merge(dataDir: String, pairs : Array[String], keepFields : Array[String]) : 
 
 
 /**
-   global variables for the run	
-   using the small bucketed set generated via python 
-**/ 
-
-
-val dataDir : String = "hdfs:///user/jr4716/bucket/"
-val pairs4 : Array[String] = Array("XRP", "ETH", "XBT", "LTC")
-val pairs2 : Array[String] = Array("ETH", "XBT")
-
-/**
-  we dont' need all of the fields from the input so just keep the below 
-  fields to conserve space
-**/
- 
-val keepFields : Array[String] = Array("bucket", "price", "dpx", "fwdDelta")
-
-/**
    output from 
    (1) bucketing - bucket is from input and all observations placed in
        mapped to 1 minute bucket 
@@ -107,78 +92,110 @@ val keepFields : Array[String] = Array("bucket", "price", "dpx", "fwdDelta")
    (4) merging the pairs using bucket	
 
 
-   the colms from  merged2
    -------
    columns
    -------
-   bucket, ETH_price, ETH_dpx, ETH_fwdDelta, XBT_price, XBT_dpx, XBT_fwdDelta
-
-**/
+   bucket , {pair_i_price, pair_i_dpx, pair_i_fwdDelta}
 
 
-val merged2 = merge(dataDir, pairs2, keepFields)
-
-/**
 	do a simple regression just on two features to start 
 	features are the change in price of the lagged moving avergae
 
 	--------
 	features
 	---------
-	ETH_dpx, XBT_dpx
+	[{pair_i_dpx}] 
 
 	---------
 	responses
 	---------
-	ETH_fwdDelta, XBT_fwdDelta
+	pair_i_fwdDelta
 
 
 	---------------------
 	regression equations
-	we are going to estimate the coefficients
-	(e1, e2) using features (ETH_dpx, XBT_dpx) and response ETH_fwdDelta
-	(x1, x2) using features (ETH_dpx, XBT_dpx) and response XBT_fwdDelta
 	---------------------
 
-	ETH_fwdDelta = e1 * ETH_dpx  + e2 * XBT_dpx
-	XBT_fwdDelta = x1 * ETH_dpx  + x2 * XBT_dpx
+	pair_i_fwdDelta = B*[pair_i_dpx]
+	
+	----------------------
+	running in spark
+	----------------------
 
 
-   this is what sample data looks like for a linear regression
-   val training = spark.createDataFrame(Seq(
-     (1.0, Vectors.dense(0.0, 1.1, 0.1)),
-     (0.0, Vectors.dense(2.0, 1.0, -1.0)),
-     (0.0, Vectors.dense(2.0, 1.3, 1.0)),
-     (1.0, Vectors.dense(0.0, 1.2, -0.5))
-    )).toDF("label", "features")
+	A. create data set in from of (response,Vectors.dense(feautres))
+	----------------------------------------------------------------
+	create DataFrame
+	Seq(
+	  pair_i_fwdDelta(0), Vectors.dense({pair_i_dpx}(0)),
+	  ...
+ 	  pair_i_fwdDelta(n), Vectors.dense({pair_i_dpx}(n))
+	)
+	
 
-**/
+        val dataSet = dataFrame.toDF("label", "features")
+
+        B. nornalize data by x_norm = (xi - mean(x))/std(d)
+       
+        C. run regression on x_norm
+
+	D. unscale the coefficients
 
 
-/**
-  set up data to run in linear regression
-  each row of data to the regression is a tuple of (double(response), Vector(features))
-**/
+	E. calculated the predicted change in price
+	predicted_change_price = B_esimated * X
+
+	precicted_price = current_price + predicted changed in price	
 
 
+**/ 
 
+val dataDir : String = "hdfs:///user/jr4716/bucket/"
+val pairs : Array[String] = Array("XBT", "ETH", "XRP", "LTC")
+val keepFields : Array[String] = Array("bucket", "price", "dpx", "fwdDelta")
+
+import scala.collection.mutable.ArrayBuffer
+
+def featIndex(n : Int) : Array[Int] = {
+  var b = ArrayBuffer.fill[Int](n)(0)
+  for(i <- 0 until n) {
+    b(i) = 2 + 3*(i)
+  }
+  b.toArray
+}
+
+val featureIndex = featIndex(pairs.size)
+val respIndex = featureIndex.map(x => x + 1)
+
+//---------------------------------------------------------------------------------
+// STEP 1, get the merged dataset and create DataFrame in ml format for regression
+//---------------------------------------------------------------------------------
 def rdata(row : org.apache.spark.sql.Row, ri: Int, fi:Array[Int]) = {
     (row(ri).asInstanceOf[Double], Vectors.dense(fi.map(i => row(i).asInstanceOf[Double])))
 }
 
-val reg1 = merged2.map(s => rdata(s, 3, Array(2, 5)))
-val df = reg1.toDF("label", "features")
+val dataSet = merge(dataDir, pairs, keepFields)
+val regressionSet = dataSet.map(s => rdata(s, respIndex(0), featureIndex)).toDF("label", "features")
+
+//---------------------------------------------------------------------------------
+// STEP 2, scale the data for ML Algos (unscaled data will give unpredecitable results)
+//---------------------------------------------------------------------------------
+val scaler = new StandardScaler().setInputCol("features").setOutputCol("scaledFeatures").setWithStd(true).setWithMean(false)
+val scalerModel = scaler.fit(regressionSet)
+val scalerData = scalerModel.transform(regressionSet)
+
+//---------------------------------------------------------------------------------
+// STEP 3, Apply ML Algo to Scaled Data
+//---------------------------------------------------------------------------------
+val linearReg = new LinearRegression().setMaxIter(200).setFeaturesCol("scaledFeatures")
+val fitModel = linearReg.fit(scalerData)
+val prediction = fitModel.transform(scalerData).select("features", "scaledFeatures", "prediction")
 
 
-/**
-  run a linear regression
-**/
 
 
 
-val lr = new LinearRegression()
-lr.setMaxIter(100)
-val model = lr.fit(df)
+
 
 
 
