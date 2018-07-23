@@ -108,7 +108,7 @@ window.addEventListener('load', function () {
             g.append("path")
                 .datum(actual)
                 .attr("fill", "none")
-                .attr("stroke", "red")
+                .attr("stroke", props.color)
                 .attr("stroke-linejoin", "round")
                 .attr("stroke-linecap", "round")
                 .attr("stroke-width", 1.5)
@@ -118,7 +118,7 @@ window.addEventListener('load', function () {
             g.append("path")
                 .datum(predicted)
                 .attr("fill", "none")
-                .attr("stroke", "blue")
+                .attr("stroke", "red")
                 .attr("stroke-linejoin", "round")
                 .attr("stroke-linecap", "round")
                 .attr("stroke-width", 1.5)
@@ -136,6 +136,30 @@ window.addEventListener('load', function () {
             let p = document.createElement("p");
             p.className = pair;
             p.innerHTML = pair + " - MODEL1";
+            parent.appendChild(p);
+
+            // Describe the actual price line
+            p = document.createElement("p");
+            p.className = pair;
+            p.innerHTML = "&nbsp;&nbsp;&nbsp;" + pair + " Actual Price";
+            let span = document.createElement("span");
+            span.style.width = "18px";
+            span.style.height = "18px";
+            span.style.float = "left";
+            span.style.background = props.color;
+            p.appendChild(span);
+            parent.appendChild(p);
+
+            // Describe the predicted line
+            p = document.createElement("p");
+            p.className = pair;
+            p.innerHTML = "&nbsp;&nbsp;&nbsp;" + pair + " Predicted Price";
+            span = document.createElement("span");
+            span.style.width = "18px";
+            span.style.height = "18px";
+            span.style.float = "left";
+            span.style.background = "red";
+            p.appendChild(span);
             parent.appendChild(p);
 
             p = document.createElement("p");
