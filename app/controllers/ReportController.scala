@@ -5,6 +5,8 @@ import javax.inject._
 import java.io.File
 import java.io.PipedOutputStream
 import java.io.PipedInputStream
+import java.io.BufferedReader
+import java.io.FileReader
 import play.api.mvc._
 import play.api.libs.iteratee.Enumerator
 import org.apache.spark.sql.SparkSession
@@ -36,21 +38,19 @@ class ReportController @Inject()(cc: ControllerComponents, sparkSession: SparkSe
 
   def getData(pair: String) : InputStream = {
     // val df = sparkSession.read.format("com.databricks.spark.csv").option("header", "true").option("inferSchema", "true").load("hdfs://babar.es.its.nyu.edu:8020/user/pjv253/valhalla/" + pair + ".csv")
-    val df = sparkSession.read.format("com.databricks.spark.csv").option("header", "true").option("inferSchema", "true").load("data/" + pair + ".csv")
     val out = new PipedOutputStream()
     val in = new PipedInputStream()
     val writer = new PrintWriter(new OutputStreamWriter(out))
-    val header = df.columns.mkString(",")
-    writer.println(header)
 		in.connect(out);
 		val pipeWriter = new Thread(new Runnable() {
       def run(): Unit = {
-        val iterator = df.toLocalIterator
-        while(iterator.hasNext) {
-          val row = iterator.next
-          val line = row.mkString(",")
+        val reader = new BufferedReader(new FileReader("data/"+pair+".csv"))
+        var row : String = null
+        while({row = reader.readLine(); row != null}) {
+          val line = row
           writer.println(line)
         }
+        reader.close()
         writer.close()
       }
     })
