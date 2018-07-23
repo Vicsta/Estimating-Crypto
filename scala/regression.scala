@@ -3,6 +3,8 @@ import org.apache.spark.ml.linalg.Vectors
 import org.apache.spark.ml.feature.Normalizer
 import org.apache.spark.ml.feature.StandardScaler
 import org.apache.spark.sql._
+import scala.collection.mutable.ArrayBuffer
+
 
 case class Trade(price: Double, qty: Double, time: Long, bucket: Long)
 
@@ -83,78 +85,49 @@ def merge(dataDir: String, pairs : Array[String], keepFields : Array[String]) : 
 }
 
 
-/**
-   output from 
-   (1) bucketing - bucket is from input and all observations placed in
-       mapped to 1 minute bucket 
-   (2) condensing buckets (by taking weighted price)
-   (3) computing fwd and back moving averages
-   (4) merging the pairs using bucket	
+def printSummary(model: org.apache.spark.ml.regression.LinearRegressionModel, coeff: org.apache.spark.ml.linalg.Vector,
+    dataSet: org.apache.spark.sql.DataFrame, resp: Int, features: Array[Int]) = {
+    printf("Estimation = %s\n", dataSet.columns(resp))
+    printf("R-squared  = %f\n", model.summary.r2)
+    printf("MSE        = %f\n", model.summary.meanSquaredError)
+    for(i <- 0 until coeff.size) {
+       var name = dataSet.columns(features(i))
+       printf("%d: (%s,tvalue) = (%f, %f)\n", i, name, coeff(i), model.summary.tValues(i))
+    }
+}
 
+def fitLinear(data: org.apache.spark.sql.DataFrame) = {
+    val lr = new LinearRegression().setMaxIter(200).setFeaturesCol("features")
+    val model = lr.fit(data)
+    val prediction = model.transform(data).select("features", "prediction", "label")
+    model
+}
 
-   -------
-   columns
-   -------
-   bucket , {pair_i_price, pair_i_dpx, pair_i_fwdDelta}
+def fitScaled(data: org.apache.spark.sql.DataFrame) = {
 
+    val scale = new StandardScaler()
+    .setInputCol("features")
+    .setOutputCol("scaledFeatures")
+    .setWithStd(true)
+    .setWithMean(false)
+    
+    val smodel = scale.fit(data)
+    val sdata = smodel.transform(data)
 
-	do a simple regression just on two features to start 
-	features are the change in price of the lagged moving avergae
+    val lr = new LinearRegression().setMaxIter(200).setFeaturesCol("scaledFeatures")
+    val model = lr.fit(sdata)
+    val pred = model.transform(sdata).select("features", "scaledFeatures", "prediction")
 
-	--------
-	features
-	---------
-	[{pair_i_dpx}] 
+    val coeff = model.coefficients
+    val std = smodel.std
+    val unscaled : scala.collection.mutable.ArrayBuffer[Double] = ArrayBuffer.fill[Double](coeff.size)(0.0)
+    for(i <- 0 until coeff.size) {
+       unscaled(i) = coeff(i) / std(i)
+    }
+    val uv = org.apache.spark.ml.linalg.Vectors.dense(unscaled.toArray)
 
-	---------
-	responses
-	---------
-	pair_i_fwdDelta
-
-
-	---------------------
-	regression equations
-	---------------------
-
-	pair_i_fwdDelta = B*[pair_i_dpx]
-	
-	----------------------
-	running in spark
-	----------------------
-
-
-	A. create data set in from of (response,Vectors.dense(feautres))
-	----------------------------------------------------------------
-	create DataFrame
-	Seq(
-	  pair_i_fwdDelta(0), Vectors.dense({pair_i_dpx}(0)),
-	  ...
- 	  pair_i_fwdDelta(n), Vectors.dense({pair_i_dpx}(n))
-	)
-	
-
-        val dataSet = dataFrame.toDF("label", "features")
-
-        B. nornalize data by x_norm = (xi - mean(x))/std(d)
-       
-        C. run regression on x_norm
-
-	D. unscale the coefficients
-
-
-	E. calculated the predicted change in price
-	predicted_change_price = B_esimated * X
-
-	precicted_price = current_price + predicted changed in price	
-
-
-**/ 
-
-val dataDir : String = "hdfs:///user/jr4716/bucket/"
-val pairs : Array[String] = Array("XBT", "ETH", "XRP", "LTC")
-val keepFields : Array[String] = Array("bucket", "price", "dpx", "fwdDelta")
-
-import scala.collection.mutable.ArrayBuffer
+    (model, uv)
+}
 
 def featIndex(n : Int) : Array[Int] = {
   var b = ArrayBuffer.fill[Int](n)(0)
@@ -164,32 +137,35 @@ def featIndex(n : Int) : Array[Int] = {
   b.toArray
 }
 
-val featureIndex = featIndex(pairs.size)
-val respIndex = featureIndex.map(x => x + 1)
+def predictPrice(dataSet: org.apache.spark.sql.DataFrame, pair: String, resp: Int, features: Array[Int]) = {
 
-//---------------------------------------------------------------------------------
-// STEP 1, get the merged dataset and create DataFrame in ml format for regression
-//---------------------------------------------------------------------------------
-def rdata(row : org.apache.spark.sql.Row, ri: Int, fi:Array[Int]) = {
-    (row(ri).asInstanceOf[Double], Vectors.dense(fi.map(i => row(i).asInstanceOf[Double])))
+   def rdata(row : org.apache.spark.sql.Row, ri: Int, fi:Array[Int]) = {
+      (row(ri).asInstanceOf[Double], Vectors.dense(fi.map(i => row(i).asInstanceOf[Double])))
+   }
+
+    val fitdata = dataSet.map(s => rdata(s, resp, features)).toDF("label", "features")
+    val scaled = fitScaled(fitdata)
+    printSummary(scaled._1, scaled._2, dataSet, resp, features)
 }
 
+
+
+
+/**
+  predict the change in prices
+
+**/
+val dataDir : String = "hdfs:///user/jr4716/bucket/"
+val pairs : Array[String] = Array("XBT", "ETH", "XRP", "LTC")
+val keepFields : Array[String] = Array("bucket", "price", "dpx", "fwdDelta")
 val dataSet = merge(dataDir, pairs, keepFields)
-val regressionSet = dataSet.map(s => rdata(s, respIndex(0), featureIndex)).toDF("label", "features")
 
-//---------------------------------------------------------------------------------
-// STEP 2, scale the data for ML Algos (unscaled data will give unpredecitable results)
-//---------------------------------------------------------------------------------
-val scaler = new StandardScaler().setInputCol("features").setOutputCol("scaledFeatures").setWithStd(true).setWithMean(false)
-val scalerModel = scaler.fit(regressionSet)
-val scalerData = scalerModel.transform(regressionSet)
 
-//---------------------------------------------------------------------------------
-// STEP 3, Apply ML Algo to Scaled Data
-//---------------------------------------------------------------------------------
-val linearReg = new LinearRegression().setMaxIter(200).setFeaturesCol("scaledFeatures")
-val fitModel = linearReg.fit(scalerData)
-val prediction = fitModel.transform(scalerData).select("features", "scaledFeatures", "prediction")
+val features = featIndex(pairs.size)
+val responses = features.map(x => x + 1)
+for(i <- 0 until responses.size) {
+      predictPrice(dataSet, pairs(i), responses(i), features)
+}
 
 
 
