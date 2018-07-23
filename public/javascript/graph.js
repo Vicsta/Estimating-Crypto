@@ -28,21 +28,43 @@ window.addEventListener('load', function () {
     let singletonX = null;
     let singletonY = null;
 
-    let drawLine = function (pair, props, checkbox) {
+    let drawLine = function (pair, props) {
         props = props || {};
         props.color = props.color || "steelblue";
         d3.csv('/data.csv?pair=' + pair, function (d) {
             d.date = parseTime(d.timestamp);
             d.price = +d.price;
+            d.predicted = +d.predicted;
             return d;
         }, function (error, data) {
             if (error) throw error;
 
+            // Get the actual data, price and timestamp (converted to date from above)
+            let actual = data.map(function(d) {
+                return {
+                    price: d.price,
+                    date: d.date
+                }
+            });
+
+            // Get the predicted data, predicted and timestamp (converted to date from above)
+            let predicted = data.map(function(d) {
+                return {
+                    price: d.predicted,
+                    date: d.date
+                }
+            });
+
+            // Extend the Y domain to encompass all values in actual AND predicted
+            y.domain(d3.extent([].concat(data.map(function(d) {
+                return d.price;
+            }), data.map(function(d) {
+                return d.predicted;
+                })
+            )));
+
             x.domain(d3.extent(data, function (d) {
                 return d.date;
-            }));
-            y.domain(d3.extent(data, function (d) {
-                return d.price;
             }));
 
             if (singletonX === null) {
@@ -67,25 +89,61 @@ window.addEventListener('load', function () {
                     .text("Price ($)");
             }
 
-            g.append("path")
+            // Create area
+            let area = d3.area()
+                // .interpolate("cardinal")
+                .x( function(d) { return x(d.date) } )
+                // .x1( function(d) { return x(predicted.date) } )
+                .y0( function(d) { return y(d.price) } )
+                .y1( function(d) { return y(d.predicted) } );
+
+            // Append area
+            g.append('path')
                 .datum(data)
+                .attr('class', 'area')
+                .attr('fill', 'lightsteelblue')
+                .attr('d', area);
+
+            // Append actual path
+            g.append("path")
+                .datum(actual)
                 .attr("fill", "none")
-                .attr("stroke", props.color)
+                .attr("stroke", "red")
                 .attr("stroke-linejoin", "round")
                 .attr("stroke-linecap", "round")
                 .attr("stroke-width", 1.5)
                 .attr("d", line);
 
+            // Append predicted path
+            g.append("path")
+                .datum(predicted)
+                .attr("fill", "none")
+                .attr("stroke", "blue")
+                .attr("stroke-linejoin", "round")
+                .attr("stroke-linecap", "round")
+                .attr("stroke-width", 1.5)
+                .attr("d", line);
+
+            // Mean Error
+            let ME = data.reduce((acc, d) => acc + (d.predicted - d.price), 0) / data.length;
+            console.log(ME);
+
+            let MSE = data.reduce((acc, d) => acc + Math.pow(d.predicted - d.price, 2), 0) / data.length;
+            console.log(MSE);
+            // Mean Squared Error
+
             let parent = document.getElementById("graphLegend");
             let p = document.createElement("p");
             p.className = pair;
-            p.innerHTML = "&nbsp;&nbsp;&nbsp;" + pair;
-            let span = document.createElement("span");
-            span.style.width = "18px";
-            span.style.height = "18px";
-            span.style.float = "left";
-            span.style.background = props.color;
-            p.appendChild(span);
+            p.innerHTML = pair + " - MODEL1";
+            parent.appendChild(p);
+
+            p = document.createElement("p");
+            p.innerHTML = "Mean Error: " + ME;
+            parent.appendChild(p);
+
+            p = document.createElement("p");
+            p.innerHTML = "Mean Squared Error: " + MSE;
             parent.appendChild(p);
 
             checkbox.disabled = false;
@@ -93,61 +151,16 @@ window.addEventListener('load', function () {
         });
     };
 
-    function toggleLine(line, state, color, checkbox) {
-        let lines = document.getElementById("lines");
-        if (state === false) {
-            // first two are G tags
-            for (let i = 2; i < lines.children.length; i++) {
-                if (lines.children[i].getAttribute("stroke") === color) {
-                    lines.removeChild(lines.children[i]);
-                    i--;
-                    let legend = document.getElementById("graphLegend");
-                    for (let x = 0; x < legend.children.length; x++) {
-                        if (legend.children[x].className === line) {
-                            legend.removeChild(legend.children[x]);
-                            x--;
-                        }
-                    }
-                }
-            }
-            checkbox.disabled = false;
-        } else {
-            drawLine(line, {color: color}, checkbox);
-        }
-    }
-
     let colors = {
-        "eth" : "steelblue",
-        "ltc" : "orange",
-        "xbt" : "green",
-        "xrp" : "red"
+        // "eth" : "steelblue",
+        // "ltc" : "orange",
+        // "xbt" : "green",
+        // "xrp" : "red",
+        "CSV1": "purple"
     };
 
-    let parentInput = document.getElementById("graphSelect");
-    let boxes = 0;
     for(let key in colors) {
-        let newInput = document.createElement("input");
-        newInput.type = "checkbox";
-        newInput.name = key;
-        newInput.checked = true;
-        newInput.onclick = function () {
-            this.disabled = true;
-            toggleLine(this.name, this.checked, colors[key], this);
-        };
-        drawLine(key, {color: colors[key]}, this);
-        parentInput.append(key.toUpperCase());
-        parentInput.appendChild(newInput);
-        boxes++;
-        if(boxes % 3 === 0) {
-            boxes = 0;
-            parentInput.appendChild(document.createElement("br"));
-        } else {
-            parentInput.append("\t");
-        }
+        drawLine(key, {color: colors[key]});
     }
-
-
-    //TODO axis values are not good after multiple drawLine calls -> Fixed: however not sure the scale will be the best fit (currently scales based on first line drawn)
-
 
 });
