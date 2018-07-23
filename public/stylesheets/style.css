@@ -19,29 +19,24 @@ body {
     line-height: 65px;
 }
 
-#graphContent {
+.graphContent {
     width: 100%;
     overflow: hidden;
 }
 
-#graph {
+.graph {
     float: left;
     width: 960px;
     height: 500px;
 }
 
-#graphLegend {
+.graphLegend {
     float: left;
     padding: 20px;
     height: 500px;
 }
 
-.content {
+#content {
     margin-top: 65px;
     width: 1920px;
-}
-
-#graphSelect {
-    margin-left: 20px;
-    float: left;
 }
