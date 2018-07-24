@@ -24,8 +24,7 @@ class ReportController @Inject()(cc: ControllerComponents, sparkSession: SparkSe
   extends AbstractController(cc) {
 
   def index = Action {
-    val df = sparkSession.read.format("com.databricks.spark.csv").option("header", "true").option("inferSchema", "true").load("data/eth.csv")
-    Ok(views.html.index(df))
+    Ok(views.html.index())
   }
 
   def data(pair: String, algo: String) = Action {
@@ -44,7 +43,7 @@ class ReportController @Inject()(cc: ControllerComponents, sparkSession: SparkSe
 		in.connect(out);
 		val pipeWriter = new Thread(new Runnable() {
       def run(): Unit = {
-        val reader = new BufferedReader(new FileReader("data/"+pair+".csv"))
+        val reader = new BufferedReader(new FileReader("results/"+pair.toUpperCase+"_" + algo + "_MERGED.csv"))
         var row : String = null
         while({row = reader.readLine(); row != null}) {
           val line = row

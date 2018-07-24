@@ -191,8 +191,8 @@ window.addEventListener('load', function () {
         // "ltc" : "orange",
         // "xbt" : "green",
         // "xrp" : "red",
-        "CSV1-Model1": "purple",
-        "CSV2-TestModel2": "blue"
+        "XETHZUSD": "purple",
+        "XLTCZUSD": "blue"
     };
 
     for (let key in colors) {
