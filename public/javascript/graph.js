@@ -1,7 +1,7 @@
 window.addEventListener('load', function () {
 
     let parseTime = function (time) {
-        let timestamp = Math.trunc(parseFloat(time) * 1000);
+        let timestamp = Math.trunc(parseFloat(time));
         return new Date(timestamp)
     };
 
