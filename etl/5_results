@@ -37,20 +37,28 @@ def results(pair: String, algo: String) =  {
      (row(bucket_index).asInstanceOf[Int], row(price_index).asInstanceOf[Double],row(dpx_index).asInstanceOf[Double], Vectors.dense(fi.map(i => row(i).asInstanceOf[Double])))
   }
 
-  val data = dataSet.map(s => rdata(s, features)).toDF("bucket", "price","dpx", "features")
+  var data = dataSet.map(s => rdata(s, features)).toDF("bucket", "price","dpx", "features")
+  if(algo.equals("linear_scaled")) {
+    val scale = new StandardScaler()
+    .setInputCol("features")
+    .setOutputCol("scaledFeatures")
+    .setWithStd(true)
+    .setWithMean(false)
+    val smodel = scale.fit(data)
+    data = smodel.transform(data)
+  }
   val prediction = model.transform(data).select("bucket", "price","dpx", "prediction").toDF
   //TODO fix up prediction
 
   val csvFile = "/user/pjv253/valhalla/results/"+pair +"_" + algo + ".csv"
-  // val path = new org.apache.hadoop.fs.Path(csvFile)
-  // val fs=org.apache.hadoop.fs.FileSystem.get(sc.hadoopConfiguration)
-  // fs.delete(path, true)
-  prediction.write.format("csv").option("header", "true").save(csvFile)
-  // val fileList = fs.listFiles(path, true)
-  // val permission = new org.apache.hadoop.fs.permission.FsPermission(org.apache.hadoop.fs.permission.FsAction.ALL,org.apache.hadoop.fs.permission.FsAction.READ_EXECUTE,org.apache.hadoop.fs.permission.FsAction.READ_EXECUTE)
-  // while (fileList.hasNext()) {
-  //   fs.setPermission(fileList.next().getPath(),permission)
-  // }
+  prediction.write.format("csv").option("header", "true").mode("overwrite").save(csvFile)
+  val path = new org.apache.hadoop.fs.Path(csvFile)
+  val fs=org.apache.hadoop.fs.FileSystem.get(sc.hadoopConfiguration)
+  val fileList = fs.listFiles(path, true)
+  val permission = new org.apache.hadoop.fs.permission.FsPermission(org.apache.hadoop.fs.permission.FsAction.ALL,org.apache.hadoop.fs.permission.FsAction.READ_EXECUTE,org.apache.hadoop.fs.permission.FsAction.READ_EXECUTE)
+  while (fileList.hasNext()) {
+    fs.setPermission(fileList.next().getPath(),permission)
+  }
 }
 
 
