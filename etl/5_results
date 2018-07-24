@@ -63,9 +63,11 @@ def results(pair: String, algo: String) =  {
   val apply_timestamp = () => udf[Double, Double]((bucket:Double) => bucket * 60 * 1000)
   var results = prediction.withColumn("predicted", apply_prediction()($"price", $"prediction")).drop("prediction")
   results = results.withColumn("timestamp", apply_timestamp()($"bucket")).drop("bucket")
+  val w = org.apache.spark.sql.expressions.Window.orderBy("timestamp")
+  results = results.withColumn("price", lag("price", 1).over(w))
   results = results.sort("timestamp").na.drop
   val csvFile = "/user/pjv253/valhalla/results/"+pair +"_" + algo + ".csv"
-  results.write.format("csv").option("header", "true").mode("overwrite").save(csvFile)
+  results.coalesce(1).write.format("csv").option("header", "true").mode("overwrite").save(csvFile)
 }
 
 def merge(pair: String, algo: String) =  {
