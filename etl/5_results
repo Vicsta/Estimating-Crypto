@@ -73,6 +73,7 @@ def results(pair: String, algo: String) =  {
 def merge(pair: String, algo: String) =  {
   val csvFile = "/user/pjv253/valhalla/results/"+pair +"_" + algo + ".csv"
   val mergedCsvFile = "/user/pjv253/valhalla/results/"+pair +"_" + algo + "_MERGED.csv"
+  fs.delete(mergedCsvFile, true)
   val fs=org.apache.hadoop.fs.FileSystem.get(sc.hadoopConfiguration)
   FileUtil.copyMerge(fs, new Path(csvFile), fs, new Path(mergedCsvFile), true, sc.hadoopConfiguration, null)
 }
