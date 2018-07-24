@@ -38,11 +38,11 @@ def results(pair: String, algo: String) =  {
   val features = featIndex(4)
   val file = "/user/pjv253/valhalla/models/"+pair +"_" + algo
   val model = models(algo).load(file)
+  val price_index = dataSet.columns.indexOf(pair + "_price")
+  val dpx_index = dataSet.columns.indexOf(pair + "_dpx")
+  val bucket_index = dataSet.columns.indexOf("bucket")
 
   def rdata(row : org.apache.spark.sql.Row, fi:Array[Int]) = {
-     val price_index = dataSet.columns.indexOf(pair + "_price")
-     val dpx_index = dataSet.columns.indexOf(pair + "_dpx")
-     val bucket_index = dataSet.columns.indexOf("bucket")
      (row(bucket_index).asInstanceOf[Int], row(price_index).asInstanceOf[Double],row(dpx_index).asInstanceOf[Double], Vectors.dense(fi.map(i => row(i).asInstanceOf[Double])))
   }
 
