@@ -1,3 +1,5 @@
+
+
 import org.apache.spark.ml.regression.LinearRegression
 import org.apache.spark.ml.linalg.Vectors
 import org.apache.spark.ml.feature.Normalizer
@@ -5,16 +7,8 @@ import org.apache.spark.ml.feature.StandardScaler
 import org.apache.spark.sql._
 import scala.collection.mutable.ArrayBuffer
 
-def regdf(fileName : String) : org.apache.spark.sql.DataFrame = {
-    sc.textFile(fileName).map(_.split(",")).map(s => (s(2).toDouble, Vectors.dense(s(0).toDouble, s(1).toDouble))).toDF("label", "features")
-}
-
-def printSummary(model: org.apache.spark.ml.regression.LinearRegressionModel, coeff: org.apache.spark.ml.linalg.Vector) = {
-    printf("R-squared = %f\n", model.summary.r2)
-    printf("MSE       = %f\n", model.summary.meanSquaredError)
-    for(i <- 0 until coeff.size) {
-       printf("(feature_%d,tvalue) = (%f, %f)\n", i, coeff(i), model.summary.tValues(i))
-    }
+implicit class Crossable[X](xs: Traversable[X]) {
+  def cross[Y](ys: Traversable[Y]) = for { x <- xs; y <- ys } yield (x, y)
 }
 
 def fitLinear(data: org.apache.spark.sql.DataFrame) = {
@@ -25,58 +19,54 @@ def fitLinear(data: org.apache.spark.sql.DataFrame) = {
 }
 
 def fitScaled(data: org.apache.spark.sql.DataFrame) = {
-
     val scale = new StandardScaler()
     .setInputCol("features")
     .setOutputCol("scaledFeatures")
     .setWithStd(true)
     .setWithMean(false)
-
     val smodel = scale.fit(data)
     val sdata = smodel.transform(data)
-
     val lr = new LinearRegression().setMaxIter(200).setFeaturesCol("scaledFeatures")
     val model = lr.fit(sdata)
-    val pred = model.transform(sdata).select("features", "scaledFeatures", "prediction")
-
-    val coeff = model.coefficients
-    val std = smodel.std
-    val unscaled : scala.collection.mutable.ArrayBuffer[Double] = ArrayBuffer.fill[Double](coeff.size)(0.0)
-    for(i <- 0 until coeff.size) {
-       unscaled(i) = coeff(i) / std(i)
-    }
-    val uv = org.apache.spark.ml.linalg.Vectors.dense(unscaled.toArray)
-
-    (model, uv)
+    model
 }
 
-
-val fileName : String = "hdfs:///user/jr4716/gen.csv"
-val regressionSet = regdf(fileName)
-
-val fitModel = fitLinear(regressionSet)
-printSummary(fitModel, fitModel.coefficients)
-
-val scaled = fitScaled(regressionSet)
-printSummary(scaled._1, scaled._2)
-
-val sqlContext = new org.apache.spark.sql.SQLContext(sc)
-var data = sqlContext.read.format("csv").option("header", "true").option("inferSchema", "true").load("/user/pjv253/valhalla/MERGED_FINAL.csv")
-def regdf(pair : String) : org.apache.spark.sql.DataFrame = {
-    sc.textFile(fileName).map(_.split(",")).map(s => (s(2).toDouble, Vectors.dense(s(0).toDouble, s(1).toDouble))).toDF("label", "features")
-}
-def train(pair : String, model: String) :  org.apache.spark.ml.Model = {
-
-  return null;
+def featIndex(n : Int) : Array[Int] = {
+  var b = ArrayBuffer.fill[Int](n)(0)
+  for(i <- 0 until n) {
+    b(i) = 3 + 3*(i)
+  }
+  b.toArray
 }
 
-implicit class Crossable[X](xs: Traversable[X]) {
-  def cross[Y](ys: Traversable[Y]) = for { x <- xs; y <- ys } yield (x, y)
+def train(pair: String, algo: String) =  {
+  val models = Map(
+                   "linear" -> fitLinear _,
+                   "linear_scaled" -> fitScaled _)
+
+  val sqlContext = new org.apache.spark.sql.SQLContext(sc)
+  val dataSet = sqlContext.read.format("csv").option("header", "true").option("inferSchema", "true").load("/user/pjv253/valhalla/MERGED_FINAL.csv")
+  val features = featIndex(4)
+  val ri = dataSet.columns.indexOf(pair + "_fwdDelta")
+
+  def rdata(row : org.apache.spark.sql.Row, fi:Array[Int]) = {
+     (row(ri).asInstanceOf[Double], Vectors.dense(fi.map(i => row(i).asInstanceOf[Double])))
+  }
+
+  val fitdata = dataSet.map(s => rdata(s, features)).toDF("label", "features")
+  val model = models(algo)(fitdata)
+  val file = "/user/pjv253/valhalla/models/"+pair +"_" + algo
+  val path = new org.apache.hadoop.fs.Path(file)
+  val fs=org.apache.hadoop.fs.FileSystem.get(sc.hadoopConfiguration)
+  model.write.overwrite().save(file)
+  val fileList = fs.listFiles(path, true)
+  val permission = new org.apache.hadoop.fs.permission.FsPermission(org.apache.hadoop.fs.permission.FsAction.ALL,org.apache.hadoop.fs.permission.FsAction.READ_EXECUTE,org.apache.hadoop.fs.permission.FsAction.READ_EXECUTE)
+  while (fileList.hasNext()) {
+    fs.setPermission(fileList.next().getPath(),permission)
+  }
 }
 
-val models = Map("linear" -> fitLinear _)
 val currencies = List("XXBTZUSD", "XLTCZUSD", "XXRPZUSD", "XETHZUSD")
-(models.keys cross currencies).foreach(println)
-val m = train("XXBTZUSD", "linear")
+val models = List("linear", "linear_scaled")
 
-val fileName : String = "hdfs:///user/pjv253/valhalla/gen.csv"
+(currencies cross models).foreach(train
