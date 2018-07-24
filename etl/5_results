@@ -52,13 +52,13 @@ def results(pair: String, algo: String) =  {
 
   val csvFile = "/user/pjv253/valhalla/results/"+pair +"_" + algo + ".csv"
   prediction.write.format("csv").option("header", "true").mode("overwrite").save(csvFile)
-  val path = new org.apache.hadoop.fs.Path(csvFile)
-  val fs=org.apache.hadoop.fs.FileSystem.get(sc.hadoopConfiguration)
-  val fileList = fs.listFiles(path, true)
-  val permission = new org.apache.hadoop.fs.permission.FsPermission(org.apache.hadoop.fs.permission.FsAction.ALL,org.apache.hadoop.fs.permission.FsAction.READ_EXECUTE,org.apache.hadoop.fs.permission.FsAction.READ_EXECUTE)
-  while (fileList.hasNext()) {
-    fs.setPermission(fileList.next().getPath(),permission)
-  }
+  // val path = new org.apache.hadoop.fs.Path(csvFile)
+  // val fs=org.apache.hadoop.fs.FileSystem.get(sc.hadoopConfiguration)
+  // val fileList = fs.listFiles(path, true)
+  // val permission = new org.apache.hadoop.fs.permission.FsPermission(org.apache.hadoop.fs.permission.FsAction.ALL,org.apache.hadoop.fs.permission.FsAction.READ_EXECUTE,org.apache.hadoop.fs.permission.FsAction.READ_EXECUTE)
+  // while (fileList.hasNext()) {
+  //   fs.setPermission(fileList.next().getPath(),permission)
+  // }
 }
 
 
