@@ -28,15 +28,15 @@ class ReportController @Inject()(cc: ControllerComponents, sparkSession: SparkSe
     Ok(views.html.index(df))
   }
 
-  def data(pair: String) = Action {
-    val source: Source[ByteString, _] = StreamConverters.fromInputStream(()=> getData(pair))
+  def data(pair: String, algo: String) = Action {
+    val source: Source[ByteString, _] = StreamConverters.fromInputStream(()=> getData(pair, algo))
     Result(
         header = ResponseHeader(200, Map.empty),
         body =  HttpEntity.Streamed(source, None, Some("text/csv"))
     )
   }
 
-  def getData(pair: String) : InputStream = {
+  def getData(pair: String, algo: String) : InputStream = {
     // val df = sparkSession.read.format("com.databricks.spark.csv").option("header", "true").option("inferSchema", "true").load("hdfs://babar.es.its.nyu.edu:8020/user/pjv253/valhalla/" + pair + ".csv")
     val out = new PipedOutputStream()
     val in = new PipedInputStream()

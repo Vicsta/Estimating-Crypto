@@ -5,10 +5,10 @@ window.addEventListener('load', function () {
         return new Date(timestamp)
     };
 
-    let drawLine = function (pair, props, callback) {
+    let drawLine = function (pair, algo, props, callback) {
         props = props || {};
         props.color = props.color || "steelblue";
-        d3.csv('/data.csv?pair=' + pair, function (d) {
+        d3.csv('/data.csv?pair=' + pair + '&algo=' + algo, function (d) {
             d.date = parseTime(d.timestamp);
             d.price = +d.price;
             d.predicted = +d.predicted;
@@ -196,7 +196,7 @@ window.addEventListener('load', function () {
     };
 
     for (let key in colors) {
-        drawLine(key, {color: colors[key]});
+        drawLine(key, 'linear', {color: colors[key]});
     }
 
 });
