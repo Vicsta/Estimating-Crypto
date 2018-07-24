@@ -60,7 +60,9 @@ def results(pair: String, algo: String) =  {
   }
   val prediction = model.transform(data).select("bucket", "price", "prediction")
   val apply_prediction = () => udf[Double, Double, Double]((price:Double, prediction:Double) => price +  prediction)
+  val apply_timestamp = () => udf[Double, Double]((bucket:Double) => bucket * 60 * 1000)
   var results = prediction.withColumn("predicted", apply_prediction()($"price", $"prediction")).drop("prediction")
+  results = results.withColumn("timestamp", apply_timestamp()($"bucket")).drop("bucket")
   //TODO fix up prediction
   val csvFile = "/user/pjv253/valhalla/results/"+pair +"_" + algo + ".csv"
   results.write.format("csv").option("header", "true").mode("overwrite").save(csvFile)
