@@ -69,4 +69,4 @@ def train(pair: String, algo: String) =  {
 val currencies = List("XXBTZUSD", "XLTCZUSD", "XXRPZUSD", "XETHZUSD")
 val models = List("linear", "linear_scaled")
 
-(currencies cross models).foreach(train
+(currencies cross models).foreach(x => train(x._1, x._2))
