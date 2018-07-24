@@ -143,19 +143,15 @@ window.addEventListener('load', function () {
             let MSE = data.reduce((acc, d) => acc + Math.pow(d.predicted - d.price, 2), 0) / data.length;
             // Mean Squared Error
 
-            let arr = pair.split("-");
-            let type = arr[0];
-            let model = arr[1];
-
             let p = document.createElement("p");
             p.className = pair;
-            p.innerHTML = type + " - " + model;
+            p.innerHTML = pair + " - " + algo;
             graphLegend.appendChild(p);
 
             // Describe the actual price line
             p = document.createElement("p");
             p.className = pair;
-            p.innerHTML = "&nbsp;&nbsp;&nbsp;" + type + " Actual Price";
+            p.innerHTML = "&nbsp;&nbsp;&nbsp;" + pair + " Actual Price";
             let span = document.createElement("span");
             span.style.width = "18px";
             span.style.height = "18px";
@@ -167,7 +163,7 @@ window.addEventListener('load', function () {
             // Describe the predicted line
             p = document.createElement("p");
             p.className = pair;
-            p.innerHTML = "&nbsp;&nbsp;&nbsp;" + type + " Predicted Price";
+            p.innerHTML = "&nbsp;&nbsp;&nbsp;" + pair + " Predicted Price";
             span = document.createElement("span");
             span.style.width = "18px";
             span.style.height = "18px";
