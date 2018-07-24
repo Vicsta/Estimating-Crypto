@@ -183,12 +183,10 @@ window.addEventListener('load', function () {
     };
 
     let colors = {
-        // "eth" : "steelblue",
-        // "ltc" : "orange",
-        // "xbt" : "green",
-        // "xrp" : "red",
-        "XETHZUSD": "purple",
-        "XLTCZUSD": "blue"
+        "XETHZUSD": "blue",
+        "XLTCZUSD": "blue",
+        "XXBTZUSD": "blue",
+        "XXRPZUSD": "blue"
     };
 
     for (let key in colors) {
