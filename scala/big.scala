@@ -52,7 +52,7 @@ def fitScaled(data: org.apache.spark.sql.DataFrame) = {
     (model, uv)
 }
 
-def predictPrice(dataSet: org.apache.spark.sql.DataFrame, pair: String, resp: Int, features: Array[Int]) = {
+def predictPrice(dataSet: org.apache.spark.sql.DataFrame, resp: Int, features: Array[Int]) = {
 
    def rdata(row : org.apache.spark.sql.Row, ri: Int, fi:Array[Int]) = {
       (row(ri).asInstanceOf[Double], Vectors.dense(fi.map(i => row(i).asInstanceOf[Double])))
@@ -82,13 +82,11 @@ def featIndex(n : Int) : Array[Int] = {
 
 
 val sqlContext = new org.apache.spark.sql.SQLContext(sc)
-var data = sqlContext.read.format("csv").option("header", "true").option("inferSchema", "true").load("/user/pjv253/valhalla/MERGED_FINAL.csv")
+val dataSet = sqlContext.read.format("csv").option("header", "true").option("inferSchema", "true").load("/user/pjv253/valhalla/MERGED_FINAL.csv")
 val features = featIndex(4)
 val responses = features.map(x => x+1)
-val dataSet = data
-val pairs : Array[String] = Array("XXBTZUSD", "XETHZUUSD", "XXRPZUSD", "XLTCZUSD")
 for(i <- 0 until responses.size) {
-      predictPrice(dataSet, pairs(i), responses(i), features)
+      predictPrice(dataSet, responses(i), features)
 }
 
 
