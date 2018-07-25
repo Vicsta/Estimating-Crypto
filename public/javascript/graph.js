@@ -1,5 +1,31 @@
 window.addEventListener('load', function () {
 
+    let colors = {
+        "XETHZUSD": "blue",
+        "XLTCZUSD": "blue",
+        "XXBTZUSD": "blue",
+        "XXRPZUSD": "blue"
+    };
+
+    let onPage = 0;
+    let algorithms = ["linear", "linear_scaled"];
+    let cached = algorithms.map(() => false);
+
+    // Create "pages"
+    algorithms.forEach((x, i) => {
+        let page = document.createElement("div");
+        page.id = x;
+        page.className = "page";
+        page.display = "none";
+        document.getElementById("content").appendChild(page);
+
+        let opt = document.createElement("option");
+        opt.value = i;
+        // TODO: parse this text better
+        opt.innerText = x;
+        document.getElementById("select").appendChild(opt);
+    });
+
     let parseTime = function (time) {
         let timestamp = Math.trunc(parseFloat(time));
         return new Date(timestamp)
@@ -27,7 +53,7 @@ window.addEventListener('load', function () {
             graphContent.appendChild(graph);
             graphContent.appendChild(graphLegend);
 
-            document.getElementById("content").appendChild(graphContent);
+            document.getElementById(algo).appendChild(graphContent);
 
             // Create the SVG and G for each graph
             let svg = d3.select(graph).append("svg").attr("width", "960").attr("height", "500"),
@@ -124,7 +150,7 @@ window.addEventListener('load', function () {
                 .attr("stroke", props.color)
                 .attr("stroke-linejoin", "round")
                 .attr("stroke-linecap", "round")
-                .attr("stroke-width", 1.5)
+                .attr("stroke-width", 1)
                 .attr("d", line);
 
             // Append predicted path
@@ -134,7 +160,7 @@ window.addEventListener('load', function () {
                 .attr("stroke", "red")
                 .attr("stroke-linejoin", "round")
                 .attr("stroke-linecap", "round")
-                .attr("stroke-width", 1.5)
+                .attr("stroke-width", 1)
                 .attr("d", line);
 
             // Mean Error
@@ -182,15 +208,24 @@ window.addEventListener('load', function () {
         });
     };
 
-    let colors = {
-        "XETHZUSD": "blue",
-        "XLTCZUSD": "blue",
-        "XXBTZUSD": "blue",
-        "XXRPZUSD": "blue"
-    };
-
     for (let key in colors) {
-        drawLine(key, 'linear', {color: colors[key]});
+        drawLine(key, algorithms[onPage], {color: colors[key]});
     }
+    cached[onPage] = true;
+
+    $("#select").on('change', function() {
+        let newPage = this.value;
+        $("#" + algorithms[onPage]).fadeOut("slow", function() {
+            if(cached[newPage]) {
+            } else {
+                for (let key in colors) {
+                    drawLine(key, algorithms[newPage], {color: colors[key]});
+                }
+                cached[newPage] = true;
+            }
+            $("#" + algorithms[newPage]).fadeIn("slow");
+            onPage = newPage;
+        });
+    });
 
 });
