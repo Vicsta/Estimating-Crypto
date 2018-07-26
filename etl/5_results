@@ -67,6 +67,9 @@ def results(pair: String, algo: String) =  {
   results = results.withColumn("timestamp", apply_timestamp()($"bucket")).drop("bucket")
   val w = org.apache.spark.sql.expressions.Window.orderBy("timestamp")
   results = results.withColumn("price", lag("price", 1).over(w))
+  val apply_hours = () => udf[Double, Double]((timestamp:Double) => ((timestamp/(1000 * 60 * 60)).toLong * (1000 * 60 * 60)))
+  results = results.withColumn("timestamp", apply_hours()($"timestamp"))
+  results = results.groupBy("timestamp").agg(avg("price").as("price"), avg("predicted").as("predicted"))
   results = results.sort("timestamp").na.drop
   val csvFile = "/user/pjv253/valhalla/results/"+pair +"_" + algo + ".csv"
   results.coalesce(1).write.format("csv").option("header", "true").mode("overwrite").save(csvFile)
@@ -75,8 +78,8 @@ def results(pair: String, algo: String) =  {
 def merge(pair: String, algo: String) =  {
   val csvFile = "/user/pjv253/valhalla/results/"+pair +"_" + algo + ".csv"
   val mergedCsvFile = "/user/pjv253/valhalla/results/"+pair +"_" + algo + "_MERGED.csv"
-  fs.delete(mergedCsvFile, true)
   val fs=org.apache.hadoop.fs.FileSystem.get(sc.hadoopConfiguration)
+  fs.delete(new Path(mergedCsvFile), true)
   FileUtil.copyMerge(fs, new Path(csvFile), fs, new Path(mergedCsvFile), true, sc.hadoopConfiguration, null)
 }
 
