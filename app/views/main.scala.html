@@ -2,7 +2,6 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        @* Here's where we render the page title `String`. *@
         <title>@title</title>
         <link rel="stylesheet" media="screen" href="@assetsFinder.path("stylesheets/main.css")">
         <link rel="shortcut icon" type="image/png" href="@assetsFinder.path("images/favicon.png")">
@@ -14,8 +13,6 @@
         <script type="text/javascript" src="@assetsFinder.path("javascripts/graph.js")"></script>
     </head>
     <body>
-        @* And here's where we render the `Html` object containing
-         * the page content. *@
         @content
-    </body>z
+    </body>
 </html>
