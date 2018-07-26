@@ -1,3 +1,5 @@
+//spark2-shell
+
 import org.apache.spark.ml.regression.LinearRegression
 import org.apache.spark.ml.linalg.Vectors
 import org.apache.spark.ml.feature.Normalizer
@@ -63,14 +65,17 @@ def results(pair: String, algo: String) =  {
   val apply_timestamp = () => udf[Double, Double]((bucket:Double) => bucket * 60 * 1000)
   var results = prediction.withColumn("predicted", apply_prediction()($"price", $"prediction")).drop("prediction")
   results = results.withColumn("timestamp", apply_timestamp()($"bucket")).drop("bucket")
+  val w = org.apache.spark.sql.expressions.Window.orderBy("timestamp")
+  results = results.withColumn("price", lag("price", 1).over(w))
   results = results.sort("timestamp").na.drop
   val csvFile = "/user/pjv253/valhalla/results/"+pair +"_" + algo + ".csv"
-  results.write.format("csv").option("header", "true").mode("overwrite").save(csvFile)
+  results.coalesce(1).write.format("csv").option("header", "true").mode("overwrite").save(csvFile)
 }
 
 def merge(pair: String, algo: String) =  {
   val csvFile = "/user/pjv253/valhalla/results/"+pair +"_" + algo + ".csv"
   val mergedCsvFile = "/user/pjv253/valhalla/results/"+pair +"_" + algo + "_MERGED.csv"
+  fs.delete(mergedCsvFile, true)
   val fs=org.apache.hadoop.fs.FileSystem.get(sc.hadoopConfiguration)
   FileUtil.copyMerge(fs, new Path(csvFile), fs, new Path(mergedCsvFile), true, sc.hadoopConfiguration, null)
 }
