@@ -1,6 +1,6 @@
 body {
+  padding: 10px;
 }
-
 .topBar {
     position: fixed;
     width: 100%;
@@ -8,28 +8,18 @@ body {
     line-height: 65px;
     background: white;
     z-index: 1;
-    border-bottom: solid black 2px;
-    box-shadow: 0 0 5px 0 rgba(0, 0, 0, 1);
     top: 0;
     left: 0;
 }
-
-#topName {
-    margin-left: 1vw;
-    font-size: 2vw;
-    float: left;
+#slider {
+  width: 100%;
+  padding-left: 18px;
+  padding-right: 18px;
 }
-
-#selectAlgo {
-    margin-left: 22vw;
-    font-size: 1.8vw;
-    float: left;
-}
-
 #select {
     font-weight: bold;
-    font-size: 1.8vw;
-    height: 54px;
+    font-size: 1em;
+    height: 40px;
 }
 
 .graphContent {

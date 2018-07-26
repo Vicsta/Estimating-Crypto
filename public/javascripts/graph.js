@@ -1,4 +1,19 @@
 window.addEventListener('load', function () {
+    let min = 1.4951196E12;
+    let max = 1.5305724E12;
+
+    let slider = noUiSlider.create(document.getElementById('slider'), {
+    	start: [ min, max ],
+    	range: {
+    		'min': [  min ],
+    		'max': [ max ]
+    	}
+    });
+
+    slider.on("change", function(){
+
+    });
+
 
     let colors = {
         "XETHZUSD": "blue",
@@ -7,11 +22,8 @@ window.addEventListener('load', function () {
         "XXRPZUSD": "blue"
     };
 
-    let onPage = 0;
     let algorithms = ["linear", "linear_scaled"];
-    let cached = algorithms.map(() => false);
 
-    // Create "pages"
     algorithms.forEach((x, i) => {
         let page = document.createElement("div");
         page.id = x;
@@ -20,8 +32,7 @@ window.addEventListener('load', function () {
         document.getElementById("content").appendChild(page);
 
         let opt = document.createElement("option");
-        opt.value = i;
-        // TODO: parse this text better
+        opt.value = x;
         opt.innerText = x;
         document.getElementById("select").appendChild(opt);
     });
@@ -61,7 +72,7 @@ window.addEventListener('load', function () {
                 width = +svg.attr("width") - margin.left - margin.right,
                 height = +svg.attr("height") - margin.top - margin.bottom,
                 g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")").attr("id", "lines");
-
+            window.foo = svg
             if (error) throw error;
             // Get the actual data, price and timestamp (converted to date from above)
             let actual = data.map(function (d) {
@@ -208,24 +219,22 @@ window.addEventListener('load', function () {
         });
     };
 
+    let onPage = $("#select").val();
+    $("#" + onPage).fadeIn("slow");
+
     for (let key in colors) {
-        drawLine(key, algorithms[onPage], {color: colors[key]});
+      drawLine(key, onPage, {color: colors[key]});
     }
-    cached[onPage] = true;
 
     $("#select").on('change', function() {
-        let newPage = this.value;
-        $("#" + algorithms[onPage]).fadeOut("slow", function() {
-            if(cached[newPage]) {
-            } else {
-                for (let key in colors) {
-                    drawLine(key, algorithms[newPage], {color: colors[key]});
-                }
-                cached[newPage] = true;
-            }
-            $("#" + algorithms[newPage]).fadeIn("slow");
-            onPage = newPage;
-        });
+      let newPage = this.value;
+      $("#" + onPage).fadeOut("slow", function() {
+        for (let key in colors) {
+            drawLine(key, newPage, {color: colors[key]});
+        }
+        $("#" + newPage).fadeIn("slow");
+        onPage = newPage
+      });
     });
 
 });
