@@ -20,8 +20,8 @@ window.addEventListener('load', function () {
       var max = new Date(Math.trunc(parseFloat(range[1])))
       $('#range-start').text(new Date(min).toLocaleString())
       $('#range-end').text(new Date(max).toLocaleString())
+      $("#" + $("#select").val()).empty()
       for (let i in currencies) {
-        $("#" + $("#select").val()).empty()
         drawLine(currencies[i], onPage, {color: 'blue'});
       }
     });
@@ -60,10 +60,10 @@ window.addEventListener('load', function () {
             let range = slider.get()
             let min = new Date(Math.trunc(parseFloat(range[0])))
             let max = new Date(Math.trunc(parseFloat(range[1])))
-
             data = data.filter(function(d){
               return d.date >= min && d.date <= max
             });
+
             // Create the graph containers
 
             let graphContent = document.createElement("div");
@@ -257,7 +257,7 @@ window.addEventListener('load', function () {
       $("#" + onPage).fadeOut("slow", function() {
         $("#" + newPage).empty()
         for (let i in currencies) {
-          drawLine(currencies[i], onPage, {color: 'blue'});
+          drawLine(currencies[i], newPage, {color: 'blue'});
         }
         $("#" + newPage).fadeIn("slow");
         onPage = newPage
