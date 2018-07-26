@@ -32,6 +32,61 @@ def chmod(file: String) = {
   }
 }
 
+def fitLinear(data: org.apache.spark.sql.DataFrame) = {
+    val lr = new LinearRegression().setMaxIter(200).setFeaturesCol("features")
+    val model = lr.fit(data)
+    model
+}
+
+def fitScaled(data: org.apache.spark.sql.DataFrame) = {
+    val scale = new StandardScaler()
+    .setInputCol("features")
+    .setOutputCol("scaledFeatures")
+    .setWithStd(true)
+    .setWithMean(false)
+    val smodel = scale.fit(data)
+    val sdata = smodel.transform(data)
+    val lr = new LinearRegression().setMaxIter(200).setFeaturesCol("scaledFeatures")
+    val model = lr.fit(sdata)
+    model
+}
+
+def featIndex(n : Int) : Array[Int] = {
+  var b = ArrayBuffer.fill[Int](n)(0)
+  for(i <- 0 until n) {
+    b(i) = 3 + 3*(i)
+  }
+  b.toArray
+}
+
+def train(pair: String, algo: String) =  {
+  val models = Map(
+                   "linear" -> fitLinear _,
+                   "linear_scaled" -> fitScaled _)
+
+  val sqlContext = new org.apache.spark.sql.SQLContext(sc)
+  val dataSet = sqlContext.read.format("csv").option("header", "true").option("inferSchema", "true").load("/user/pjv253/valhalla/MERGED_FINAL.csv")
+  val features = featIndex(4)
+  val ri = dataSet.columns.indexOf(pair + "_fwdDelta")
+
+  def rdata(row : org.apache.spark.sql.Row, fi:Array[Int]) = {
+     (row(ri).asInstanceOf[Double], Vectors.dense(fi.map(i => row(i).asInstanceOf[Double])))
+  }
+
+  val fitdata = dataSet.map(s => rdata(s, features)).toDF("label", "features")
+  val model = models(algo)(fitdata)
+  val file = "/user/pjv253/valhalla/models/"+pair +"_" + algo
+  val path = new org.apache.hadoop.fs.Path(file)
+  val fs=org.apache.hadoop.fs.FileSystem.get(sc.hadoopConfiguration)
+  fs.delete(path, true)
+  model.save(file)
+  val fileList = fs.listFiles(path, true)
+  val permission = new org.apache.hadoop.fs.permission.FsPermission(org.apache.hadoop.fs.permission.FsAction.ALL,org.apache.hadoop.fs.permission.FsAction.READ_EXECUTE,org.apache.hadoop.fs.permission.FsAction.READ_EXECUTE)
+  while (fileList.hasNext()) {
+    fs.setPermission(fileList.next().getPath(),permission)
+  }
+}
+
 def results(pair: String, algo: String) =  {
   val models = Map(
                    "linear" -> LinearRegressionModel,
@@ -86,5 +141,6 @@ def merge(pair: String, algo: String) =  {
 val currencies = List("XXBTZUSD", "XLTCZUSD", "XXRPZUSD", "XETHZUSD")
 val models = List("linear", "linear_scaled")
 
+(currencies cross models).foreach(x => train(x._1, x._2))
 (currencies cross models).foreach(x => results(x._1, x._2))
 (currencies cross models).foreach(x => merge(x._1, x._2))
