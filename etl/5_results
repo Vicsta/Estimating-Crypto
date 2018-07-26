@@ -90,13 +90,16 @@ def train(pair: String, algo: String) =  {
   val sqlContext = new org.apache.spark.sql.SQLContext(sc)
   val dataSet = sqlContext.read.format("csv").option("header", "true").option("inferSchema", "true").load("/user/pjv253/valhalla/MERGED_FINAL.csv")
   val features = featIndex(4)
-  val ri = dataSet.columns.indexOf(pair + "_fwdDelta")
+  val trainPct : Double = 0.50
+  val seed : Long = 12345L
+  val Array(training, test) = dataSet.randomSplit(Array(trainPct, (1.0 - trainPct)), seed)
+  val ri = training.columns.indexOf(pair + "_fwdDelta")
 
   def rdata(row : org.apache.spark.sql.Row, fi:Array[Int]) = {
      (row(ri).asInstanceOf[Double], Vectors.dense(fi.map(i => row(i).asInstanceOf[Double])))
   }
 
-  val fitdata = dataSet.map(s => rdata(s, features)).toDF("label", "features")
+  val fitdata = training.map(s => rdata(s, features)).toDF("label", "features")
   val model = models(algo)(fitdata)
   val file = "/user/pjv253/valhalla/models/"+pair +"_" + algo
   val path = new org.apache.hadoop.fs.Path(file)
