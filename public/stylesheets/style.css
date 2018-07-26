@@ -1,6 +1,3 @@
-body {
-  padding: 10px;
-}
 .topBar {
     position: fixed;
     width: 100%;
@@ -40,6 +37,7 @@ body {
 }
 
 #content {
-    margin-top: 65px;
-    width: 1920px;
+    position: relative;
+    width: 100%;
+    margin-top: 90px;
 }

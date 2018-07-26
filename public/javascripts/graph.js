@@ -220,15 +220,17 @@ window.addEventListener('load', function () {
     };
 
     let onPage = $("#select").val();
-    $("#" + onPage).fadeIn("slow");
-
-    for (let key in colors) {
-      drawLine(key, onPage, {color: colors[key]});
-    }
+    $("#" + onPage).fadeIn("slow", function() {
+      $("#" + onPage).empty()
+      for (let key in colors) {
+        drawLine(key, onPage, {color: colors[key]});
+      }
+    });
 
     $("#select").on('change', function() {
       let newPage = this.value;
       $("#" + onPage).fadeOut("slow", function() {
+        $("#" + newPage).empty()
         for (let key in colors) {
             drawLine(key, newPage, {color: colors[key]});
         }
