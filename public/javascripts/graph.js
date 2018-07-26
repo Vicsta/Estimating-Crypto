@@ -32,7 +32,7 @@ window.addEventListener('load', function () {
         "XXRPZUSD": "blue"
     };
 
-    let algorithms = ["linear", "linear_scaled"];
+    let algorithms = ["linear", "linear_scaled", "random_forest", "gradient_boosted_tree", "decision_tree"];
 
     algorithms.forEach((x, i) => {
         let page = document.createElement("div");

@@ -1,7 +1,7 @@
 ---Starting the web server
 ./sbt run
 
-We are currently displaying 4 currencies that have been estimated using linear regression. We have taken the data from our spark jobs and graphed it using d3, to allow for additional exploration. Out scripts make is super simple to add more machine learning models which we probably will add a few more over the next few days.
+We are currently displaying 4 currencies that have been estimated using linear regression, gradient boosted trees, decision trees, and random forests. We have taken the data from our spark jobs and graphed it using d3, to allow for additional exploration. Our scripts make is super simple to add more machine learning models. But most of our exploration and analysis has been through linear regression.
 
 https://cl.ly/3f1j2o1T3A0S
 
