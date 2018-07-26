@@ -1,0 +1,81 @@
+
+
+
+--------------------------------------------------------------
+--------------------------------------------------------------
+FullSet  y=XXBTZUSD r2=0.004159 mse=685.050987 size=579954                       
+Training y=XXBTZUSD r2=0.004364 mse=685.436423 size=435118                      
+Test     y=XXBTZUSD             mse=683.928181 size=144836                         
+
+Full Regression Coefficients
+0 XXBTZUSD_dpx (-0.022913, -13.648493)
+1 XLTCZUSD_dpx (0.674510, 10.811789)
+2 XXRPZUSD_dpx (159.495075, 20.094446)
+3 XETHZUSD_dpx (0.615025, 28.708860)
+
+Training Regression Coefficients
+0 XXBTZUSD_dpx (-0.027231, -14.090195)
+1 XLTCZUSD_dpx (0.735344, 10.191548)
+2 XXRPZUSD_dpx (161.164320, 17.483995)
+3 XETHZUSD_dpx (0.649355, 26.254331)
+
+
+
+--------------------------------------------------------------
+--------------------------------------------------------------
+FullSet  y=XLTCZUSD r2=0.086085 mse=0.408704 size=579954                         
+Training y=XLTCZUSD r2=0.086612 mse=0.411176 size=435118                        
+Test     y=XLTCZUSD             mse=0.401332 size=144836                           
+
+Full Regression Coefficients
+0 XXBTZUSD_dpx (0.005733, 139.815568)
+1 XLTCZUSD_dpx (-0.260296, -170.817703)
+2 XXRPZUSD_dpx (6.045565, 31.183335)
+3 XETHZUSD_dpx (0.039485, 75.458711)
+
+Training Regression Coefficients
+0 XXBTZUSD_dpx (0.005783, 122.024725)
+1 XLTCZUSD_dpx (-0.263518, -149.564542)
+2 XXRPZUSD_dpx (5.363204, 23.851262)
+3 XETHZUSD_dpx (0.040531, 66.769214)
+
+
+
+--------------------------------------------------------------
+--------------------------------------------------------------
+FullSet  y=XXRPZUSD r2=0.012307 mse=0.000024 size=579954                         
+Training y=XXRPZUSD r2=0.013198 mse=0.000025 size=435118                        
+Test     y=XXRPZUSD             mse=0.000023 size=144836                           
+
+Full Regression Coefficients
+0 XXBTZUSD_dpx (0.000013, 42.137235)
+1 XLTCZUSD_dpx (-0.000047, -4.021067)
+2 XXRPZUSD_dpx (-0.085799, -57.523875)
+3 XETHZUSD_dpx (0.000158, 39.312244)
+
+Training Regression Coefficients
+0 XXBTZUSD_dpx (0.000014, 38.561292)
+1 XLTCZUSD_dpx (-0.000078, -5.679424)
+2 XXRPZUSD_dpx (-0.092436, -53.501055)
+3 XETHZUSD_dpx (0.000161, 34.441792)
+
+
+--------------------------------------------------------------
+--------------------------------------------------------------
+FullSet  y=XETHZUSD r2=0.025724 mse=4.276434 size=579954                         
+Training y=XETHZUSD r2=0.027592 mse=4.257888 size=435118                        
+Test     y=XETHZUSD             mse=4.333503 size=144836                           
+
+Full Regression Coefficients
+0 XXBTZUSD_dpx (0.012276, 92.549918)
+1 XLTCZUSD_dpx (0.103459, 20.989276)
+2 XXRPZUSD_dpx (28.892616, 46.071908)
+3 XETHZUSD_dpx (-0.121509, -71.787843)
+
+Training Regression Coefficients
+0 XXBTZUSD_dpx (0.012657, 83.020215)
+1 XLTCZUSD_dpx (0.112331, 19.779041)
+2 XXRPZUSD_dpx (29.665240, 41.514184)
+3 XETHZUSD_dpx (-0.132932, -67.977608)
+
+
