@@ -9,14 +9,16 @@
     left: 0;
 }
 #slider {
-  width: 100%;
-  padding-left: 18px;
-  padding-right: 18px;
+    width: 930px;
+    padding-left: 18px;
+    padding-right: 18px;
+    margin-left: 45px;
 }
 #select {
     font-weight: bold;
     font-size: 1em;
     height: 40px;
+    margin-left: 45px;
 }
 
 .graphContent {
