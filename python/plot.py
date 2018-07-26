@@ -6,15 +6,15 @@ import os
 def main(fname, start, nplot) :
     print(fname)
     with open(fname) as f:
-        x1, x2, t = [], [], []
+        x1, x2, t = [], [], [] 
         for i, line in enumerate(f):
             if i == 0 : continue
             s = line.split(",")
             if len(s) < 3 : continue
             if i > start and i  < start + nplot:
-                t.append(float(s[0].strip()))
-                x1.append(float(s[1]))
-                x2.append(float(s[2]))
+                x1.append(float(s[0]))
+                x2.append(float(s[1]))
+                t.append(float(s[2].strip()))
     L=10
     act = np.array(x1)[L:len(x1)]
     pred = np.array(x2)[0:len(x2)-L]
