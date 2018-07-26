@@ -8,17 +8,32 @@
     top: 0;
     left: 0;
 }
-#slider {
-    width: 930px;
-    padding-left: 18px;
-    padding-right: 18px;
-    margin-left: 45px;
+#slider-container {
+  width: 930px;
+  padding-left: 18px;
+  padding-right: 18px;
+  margin-left: 45px;
 }
+#range {
+  width: 100%;
+}
+
+#range-start {
+  float: left;
+}
+#range-end {
+  float: right;
+}
+
+#slider {
+    width: 100%;
+}
+
 #select {
     font-weight: bold;
     font-size: 1em;
     height: 40px;
-    margin-left: 45px;
+    margin-left: 62px;
 }
 
 .graphContent {

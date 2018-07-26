@@ -2,7 +2,7 @@ window.addEventListener('load', function () {
     let min = 1.4951196E12;
     let max = 1.5305724E12;
 
-    let slider = noUiSlider.create(document.getElementById('slider'), {
+    var slider = noUiSlider.create(document.getElementById('slider'), {
     	start: [ min, max ],
     	range: {
     		'min': [  min ],
@@ -11,7 +11,10 @@ window.addEventListener('load', function () {
     });
 
     slider.on("change", function(){
-
+      for (let key in colors) {
+        $("#" + $("#select").val()).empty()
+          drawLine(key, $("#select").val(), {color: colors[key]});
+      }
     });
 
 
@@ -51,6 +54,16 @@ window.addEventListener('load', function () {
             d.predicted = +d.predicted;
             return d;
         }, function (error, data) {
+            let range = slider.get()
+            let min = new Date(Math.trunc(parseFloat(range[0])))
+            let max = new Date(Math.trunc(parseFloat(range[1])))
+
+            data = data.filter(function(d){
+              return d.date >= min && d.date <= max
+            });
+
+            console.log(min,max,data.length)
+
             // Create the graph containers
             let graphContent = document.createElement("div");
             graphContent.className = "graphContent";
@@ -72,7 +85,7 @@ window.addEventListener('load', function () {
                 width = +svg.attr("width") - margin.left - margin.right,
                 height = +svg.attr("height") - margin.top - margin.bottom,
                 g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")").attr("id", "lines");
-            window.foo = svg
+
             if (error) throw error;
             // Get the actual data, price and timestamp (converted to date from above)
             let actual = data.map(function (d) {
