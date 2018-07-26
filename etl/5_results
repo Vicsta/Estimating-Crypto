@@ -35,7 +35,7 @@ def chmod(file: String) = {
 }
 
 def fitLinear(data: org.apache.spark.sql.DataFrame) = {
-    val lr = new LinearRegression().setMaxIter(200).setFeaturesCol("features")
+    val lr = new LinearRegression().setMaxIter(200).setFeaturesCol("features").setFitIntercept(false)
     val model = lr.fit(data)
     model
 }
@@ -48,7 +48,7 @@ def fitScaled(data: org.apache.spark.sql.DataFrame) = {
     .setWithMean(false)
     val smodel = scale.fit(data)
     val sdata = smodel.transform(data)
-    val lr = new LinearRegression().setMaxIter(200).setFeaturesCol("scaledFeatures")
+    val lr = new LinearRegression().setMaxIter(200).setFeaturesCol("scaledFeatures").setFitIntercept(false)
     val model = lr.fit(sdata)
     model
 }
@@ -90,13 +90,16 @@ def train(pair: String, algo: String) =  {
   val sqlContext = new org.apache.spark.sql.SQLContext(sc)
   val dataSet = sqlContext.read.format("csv").option("header", "true").option("inferSchema", "true").load("/user/pjv253/valhalla/MERGED_FINAL.csv")
   val features = featIndex(4)
-  val ri = dataSet.columns.indexOf(pair + "_fwdDelta")
+  val trainPct : Double = 0.50
+  val seed : Long = 12345L
+  val Array(training, test) = dataSet.randomSplit(Array(trainPct, (1.0 - trainPct)), seed)
+  val ri = training.columns.indexOf(pair + "_fwdDelta")
 
   def rdata(row : org.apache.spark.sql.Row, fi:Array[Int]) = {
      (row(ri).asInstanceOf[Double], Vectors.dense(fi.map(i => row(i).asInstanceOf[Double])))
   }
 
-  val fitdata = dataSet.map(s => rdata(s, features)).toDF("label", "features")
+  val fitdata = training.map(s => rdata(s, features)).toDF("label", "features")
   val model = models(algo)(fitdata)
   val file = "/user/pjv253/valhalla/models/"+pair +"_" + algo
   val path = new org.apache.hadoop.fs.Path(file)
@@ -147,8 +150,8 @@ def results(pair: String, algo: String) =  {
   val apply_timestamp = () => udf[Double, Double]((bucket:Double) => bucket * 60 * 1000)
   var results = prediction.withColumn("predicted", apply_prediction()($"price", $"prediction")).drop("prediction")
   results = results.withColumn("timestamp", apply_timestamp()($"bucket")).drop("bucket")
-  val w = org.apache.spark.sql.expressions.Window.orderBy("timestamp")
-  results = results.withColumn("price", lag("price", 1).over(w))
+  val w = org.apache.spark.sql.expressions.Window.orderBy("timestamp").rowsBetween(1, 11)
+  results = results.withColumn("price", avg("price").as("price").over(w))
   val apply_hours = () => udf[Double, Double]((timestamp:Double) => ((timestamp/(1000 * 60 * 60)).toLong * (1000 * 60 * 60)))
   results = results.withColumn("timestamp", apply_hours()($"timestamp"))
   results = results.groupBy("timestamp").agg(avg("price").as("price"), avg("predicted").as("predicted"))

@@ -6,6 +6,8 @@ window.addEventListener('load', function () {
     $('#range-end').text(new Date(max).toLocaleString())
     var slider = noUiSlider.create(document.getElementById('slider'), {
     	start: [ min, max ],
+      step: 1000 * 60 * 60,
+      margin: 1000 * 60 * 60,
     	range: {
     		'min': [  min ],
     		'max': [ max ]
@@ -18,20 +20,14 @@ window.addEventListener('load', function () {
       var max = new Date(Math.trunc(parseFloat(range[1])))
       $('#range-start').text(new Date(min).toLocaleString())
       $('#range-end').text(new Date(max).toLocaleString())
-      for (let key in colors) {
-        $("#" + $("#select").val()).empty()
-          drawLine(key, $("#select").val(), {color: colors[key]});
+      $("#" + $("#select").val()).empty()
+      for (let i in currencies) {
+        drawLine(currencies[i], onPage, {color: 'blue'});
       }
     });
 
 
-    let colors = {
-        "XETHZUSD": "blue",
-        "XLTCZUSD": "blue",
-        "XXBTZUSD": "blue",
-        "XXRPZUSD": "blue"
-    };
-
+    let currencies = ["XETHZUSD", "XLTCZUSD", "XXBTZUSD", "XXRPZUSD"]
     let algorithms = ["linear", "linear_scaled", "random_forest", "gradient_boosted_tree", "decision_tree"];
 
     algorithms.forEach((x, i) => {
@@ -64,15 +60,14 @@ window.addEventListener('load', function () {
             let range = slider.get()
             let min = new Date(Math.trunc(parseFloat(range[0])))
             let max = new Date(Math.trunc(parseFloat(range[1])))
-
             data = data.filter(function(d){
               return d.date >= min && d.date <= max
             });
 
-            console.log(min,max,data.length)
-
             // Create the graph containers
+
             let graphContent = document.createElement("div");
+            $(graphContent).attr('data-sort', currencies.indexOf(pair))
             graphContent.className = "graphContent";
 
             let graph = document.createElement("div");
@@ -85,6 +80,16 @@ window.addEventListener('load', function () {
             graphContent.appendChild(graphLegend);
 
             document.getElementById(algo).appendChild(graphContent);
+
+            let parent = $(document.getElementById(algo))
+            let graphs = parent.find(".graphContent")
+            graphs = graphs.sort(function(a,b){
+              return +$(a).attr('data-sort') - +$(b).attr('data-sort')
+            })
+            $(parent).empty()
+            graphs.each(function(i, graph){
+              parent.append(graph)
+            })
 
             // Create the SVG and G for each graph
             let svg = d3.select(graph).append("svg").attr("width", "960").attr("height", "500"),
@@ -242,8 +247,8 @@ window.addEventListener('load', function () {
     let onPage = $("#select").val();
     $("#" + onPage).fadeIn("slow", function() {
       $("#" + onPage).empty()
-      for (let key in colors) {
-        drawLine(key, onPage, {color: colors[key]});
+      for (let i in currencies) {
+        drawLine(currencies[i], onPage, {color: 'blue'});
       }
     });
 
@@ -251,8 +256,8 @@ window.addEventListener('load', function () {
       let newPage = this.value;
       $("#" + onPage).fadeOut("slow", function() {
         $("#" + newPage).empty()
-        for (let key in colors) {
-            drawLine(key, newPage, {color: colors[key]});
+        for (let i in currencies) {
+          drawLine(currencies[i], newPage, {color: 'blue'});
         }
         $("#" + newPage).fadeIn("slow");
         onPage = newPage
