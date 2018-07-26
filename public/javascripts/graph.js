@@ -6,6 +6,8 @@ window.addEventListener('load', function () {
     $('#range-end').text(new Date(max).toLocaleString())
     var slider = noUiSlider.create(document.getElementById('slider'), {
     	start: [ min, max ],
+      step: 1000 * 60 * 60,
+      margin: 1000 * 60 * 60,
     	range: {
     		'min': [  min ],
     		'max': [ max ]
