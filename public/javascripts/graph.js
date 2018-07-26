@@ -2,6 +2,8 @@ window.addEventListener('load', function () {
     let min = 1.4951196E12;
     let max = 1.5305724E12;
 
+    $('#range-start').text(new Date(min).toLocaleString())
+    $('#range-end').text(new Date(max).toLocaleString())
     var slider = noUiSlider.create(document.getElementById('slider'), {
     	start: [ min, max ],
     	range: {
@@ -11,6 +13,11 @@ window.addEventListener('load', function () {
     });
 
     slider.on("change", function(){
+      let range = slider.get()
+      var min = new Date(Math.trunc(parseFloat(range[0])))
+      var max = new Date(Math.trunc(parseFloat(range[1])))
+      $('#range-start').text(new Date(min).toLocaleString())
+      $('#range-end').text(new Date(max).toLocaleString())
       for (let key in colors) {
         $("#" + $("#select").val()).empty()
           drawLine(key, $("#select").val(), {color: colors[key]});
