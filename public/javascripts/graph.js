@@ -1,10 +1,25 @@
 window.addEventListener('load', function () {
-    window.addEventListener('resize', function() {
+    var debounce = function(func, wait, immediate) {
+    	var timeout;
+    	return function() {
+    		var context = this, args = arguments;
+    		var later = function() {
+    			timeout = null;
+    			if (!immediate) func.apply(context, args);
+    		};
+    		var callNow = immediate && !timeout;
+    		clearTimeout(timeout);
+    		timeout = setTimeout(later, wait);
+    		if (callNow) func.apply(context, args);
+    	};
+    };
+
+    window.addEventListener('resize', debounce(function() {
       $("#" + $("#select").val()).empty();
       for (let i in currencies) {
         drawLine(currencies[i], onPage, {color: 'blue'});
       }
-    });
+    }, 750));
     let min = 1.4951196E12;
     let max = 1.5305724E12;
 
