@@ -221,7 +221,7 @@ window.addEventListener('load', function () {
             // Describe the actual price line
             p = document.createElement("p");
             p.className = pair;
-            p.innerHTML = "&nbsp;&nbsp;&nbsp;" + pair + " Actual Price";
+            p.innerHTML = "&nbsp;&nbsp;Actual Price";
             let span = document.createElement("span");
             span.style.width = "18px";
             span.style.height = "18px";
@@ -233,7 +233,7 @@ window.addEventListener('load', function () {
             // Describe the predicted line
             p = document.createElement("p");
             p.className = pair;
-            p.innerHTML = "&nbsp;&nbsp;&nbsp;" + pair + " Predicted Price";
+            p.innerHTML = "&nbsp;&nbsp;Predicted Price";
             span = document.createElement("span");
             span.style.width = "18px";
             span.style.height = "18px";
