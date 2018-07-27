@@ -18,6 +18,11 @@
   pointer-events: all;
 }
 
+.drag {
+  pointer-events: none;
+  background-color:
+}
+
 #slider-container {
     margin-top: 17px;
     width: 930px;

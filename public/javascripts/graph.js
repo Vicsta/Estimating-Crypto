@@ -22,7 +22,7 @@ window.addEventListener('load', function () {
         $('#range-end').text(new Date(max).toLocaleString());
     });
 
-    slider.on("change", function(){
+    slider.on("set", function(){
       let range = slider.get();
       var min = new Date(Math.trunc(parseFloat(range[0])));
       var max = new Date(Math.trunc(parseFloat(range[1])));
@@ -252,15 +252,41 @@ window.addEventListener('load', function () {
 
 
             var div = d3.select("body").append("div").attr("class", "tooltip");
-
             svg.append("rect")
-                .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
                 .attr("class", "overlay")
                 .attr("width", width)
                 .attr("height", height)
+                .on("mousedown", function() {
+                  var x0 = x.invert(d3.mouse(this)[0]);
+                  this.x0 = x0;
+                  div.style("display", "none");
+                  var drag = svg.append("rect")
+                      .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+                      .attr("class", "drag")
+                      .attr("width", 0)
+                      .attr("height", height)
+                      .style("opacity", .5)
+                  this.drag = drag
+                })
+                .on("mouseup", function() {
+                  var xn = x.invert(d3.mouse(this)[0]);
+                  var min = Math.min(this.x0.getTime(), xn.getTime());
+                  var max = Math.max(this.x0.getTime(), xn.getTime());
+                  slider.set([min, max])
+                  this.x0 = null;
+                })
                 .on("mouseover", function() { div.style("display", null); })
                 .on("mouseout", function() { div.style("display", "none"); })
                 .on("mousemove", function(event) {
+                  if(this.x0) {
+                    var xn = x.invert(d3.mouse(this)[0]);
+                    var min = Math.min(x(this.x0), x(xn));
+                    var max = Math.max(x(this.x0), x(xn));
+                    var width = max - min;
+                    this.drag.attr("width", width)
+                    this.drag.attr("transform", "translate(" + (+margin.left + min) + "," + margin.top + ")")
+                    return
+                  }
                   var x0 = x.invert(d3.mouse(this)[0]);
                   x0.setMinutes(0)
                   x0.setSeconds(0)
@@ -268,7 +294,7 @@ window.addEventListener('load', function () {
                   var d = data[i]
                   div.html("Actual: " + d.price.toFixed(2) + "<br/>"  + "Predicted: " + d.predicted.toFixed(2)).style("left", (d3.event.pageX) + "px").style("top", (d3.event.pageY - 28) + "px");
                 });
-        });
+            });
     };
 
     let onPage = $("#select").val();
