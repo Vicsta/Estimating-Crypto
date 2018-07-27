@@ -322,7 +322,7 @@ window.addEventListener('load', function () {
                   x0.setSeconds(0)
                   var i = d3.bisector(function(d){return d.date}).left(data, x0, 1)
                   var d = data[i]
-                  div.html("Actual: " + d.price.toFixed(2) + "<br/>"  + "Predicted: " + d.predicted.toFixed(2)).style("left", (d3.event.pageX) + "px").style("top", (d3.event.pageY - 28) + "px");
+                  div.html("Time: " + d.date.toLocaleString() + "<br/>" + "Actual: " + d.price.toFixed(2) + "<br/>"  + "Predicted: " + d.predicted.toFixed(2)).style("left", (d3.event.pageX) + "px").style("top", (d3.event.pageY - 28) + "px");
                 });
             });
     };
