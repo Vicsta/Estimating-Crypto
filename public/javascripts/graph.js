@@ -44,10 +44,11 @@ window.addEventListener('load', function () {
     });
 
     slider.on("set", function(){
-      if(arguments[1] != 0) {
-        return;
-      }
       let range = slider.get();
+      let previous = slider.previous
+      if(previous && previous[0] == range[0] && previous[1] == range[1]) {
+        return
+      }
       var min = new Date(Math.trunc(parseFloat(range[0])));
       var max = new Date(Math.trunc(parseFloat(range[1])));
       $('#range-start').text(new Date(min).toLocaleString());
