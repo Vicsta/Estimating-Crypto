@@ -1,16 +1,24 @@
 .topBar {
     position: fixed;
-    width: 1300px;
     height: 65px;
     line-height: 65px;
     background: white;
     z-index: 1;
     top: 0;
     left: 0;
+    display: flex;
+    width: 100%;
 }
 
 #selectAlgo {
-    float: left;
+}
+
+#slider-container {
+    margin-top: 17px;
+    padding-left: 18px;
+    padding-right: 18px;
+    margin-left: 45px;
+    flex: 1;
 }
 
 .overlay {
@@ -23,17 +31,9 @@
   background-color:
 }
 
-#slider-container {
-    margin-top: 17px;
-    width: calc(100% - 500px);
-    padding-left: 18px;
-    padding-right: 18px;
-    margin-left: 45px;
-    float: left;
-}
-
 #range {
     width: 100%;
+    font-size: .75em;
 }
 
 #range-start {
