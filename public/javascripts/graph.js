@@ -265,8 +265,8 @@ window.addEventListener('load', function () {
                       .attr("class", "drag")
                       .attr("width", 0)
                       .attr("height", height)
-                      .style("opacity", .5)
-                      .style("fill", "lightblue")
+                      .style("opacity", .25)
+                      .style("fill", "blue")
                   this.drag = drag
                 })
                 .on("mouseup", function() {
