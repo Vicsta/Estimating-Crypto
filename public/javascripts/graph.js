@@ -215,7 +215,7 @@ window.addEventListener('load', function () {
 
             let p = document.createElement("p");
             p.className = pair;
-            p.innerHTML = pair + " - " + algo;
+            p.innerHTML = pair;
             graphLegend.appendChild(p);
 
             // Describe the actual price line
