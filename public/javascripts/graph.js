@@ -221,7 +221,7 @@ window.addEventListener('load', function () {
             // Describe the actual price line
             p = document.createElement("p");
             p.className = pair;
-            p.innerHTML = "&nbsp;&nbsp;Actual Price";
+            p.innerHTML = "&nbsp;&nbsp;Actual";
             let span = document.createElement("span");
             span.style.width = "18px";
             span.style.height = "18px";
@@ -233,7 +233,7 @@ window.addEventListener('load', function () {
             // Describe the predicted line
             p = document.createElement("p");
             p.className = pair;
-            p.innerHTML = "&nbsp;&nbsp;Predicted Price";
+            p.innerHTML = "&nbsp;&nbsp;Predicted";
             span = document.createElement("span");
             span.style.width = "18px";
             span.style.height = "18px";
@@ -243,11 +243,11 @@ window.addEventListener('load', function () {
             graphLegend.appendChild(p);
 
             p = document.createElement("p");
-            p.innerHTML = "Mean Error: " + ME.toFixed(6);
+            p.innerHTML = "ME: " + ME.toFixed(6);
             graphLegend.appendChild(p);
 
             p = document.createElement("p");
-            p.innerHTML = "Mean Squared Error: " + MSE.toFixed(6);
+            p.innerHTML = "MSE: " + MSE.toFixed(6);
             graphLegend.appendChild(p);
 
 
