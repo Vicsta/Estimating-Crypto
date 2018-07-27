@@ -253,11 +253,24 @@ window.addEventListener('load', function () {
 
             var div = d3.select("body").append("div").attr("class", "tooltip");
             svg.append("rect")
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
                 .attr("class", "overlay")
                 .attr("width", width)
                 .attr("height", height)
-                .on("mousedown", function() {
+                .on("mousedown", function(e) {
+                  if(d3.event.button != 0) {
+                    d3.event.target.style.cursor = 'pointer';
+                    this.x0 = null
+                    if(this.drag != null) {
+                      this.drag.remove()
+                    }
+                    this.drag = null
+                    return
+                  }
+                  d3.event.target.style.cursor = 'move';
                   var x0 = x.invert(d3.mouse(this)[0]);
+                  x0.setMinutes(0)
+                  x0.setSeconds(0)
                   this.x0 = x0;
                   div.style("display", "none");
                   var drag = svg.append("rect")
@@ -270,22 +283,38 @@ window.addEventListener('load', function () {
                   this.drag = drag
                 })
                 .on("mouseup", function() {
+                  if(!this.x0) {
+                    return;
+                  }
                   var xn = x.invert(d3.mouse(this)[0]);
+                  xn.setMinutes(0)
+                  xn.setSeconds(0)
                   var min = Math.min(this.x0.getTime(), xn.getTime());
                   var max = Math.max(this.x0.getTime(), xn.getTime());
                   slider.set([min, max])
                   this.x0 = null;
+                  this.drag = null
+                }).on("mouseover", function() { div.style("display", null); })
+                .on("mouseout", function() {
+                  d3.event.target.style.cursor = 'pointer';
+                  div.style("display", "none");
+                  this.x0 = null
+                  if(this.drag != null) {
+                    this.drag.remove()
+                  }
+                  this.drag = null
                 })
-                .on("mouseover", function() { div.style("display", null); })
-                .on("mouseout", function() { div.style("display", "none"); })
                 .on("mousemove", function(event) {
                   if(this.x0) {
                     var xn = x.invert(d3.mouse(this)[0]);
+                    xn.setMinutes(0)
+                    xn.setSeconds(0)
                     var min = Math.min(x(this.x0), x(xn));
                     var max = Math.max(x(this.x0), x(xn));
                     var width = max - min;
                     this.drag.attr("width", width)
-                    this.drag.attr("transform", "translate(" + min + "," + margin.top + ")")
+                    this.drag.attr("transform", "translate(" + (parseInt(margin.left) + min )+ "," + margin.top + ")")
+                    d3.event.target.style.cursor = 'move';
                     return
                   }
                   var x0 = x.invert(d3.mouse(this)[0]);
