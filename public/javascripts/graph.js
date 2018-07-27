@@ -23,12 +23,16 @@ window.addEventListener('load', function () {
     });
 
     slider.on("set", function(){
+      if(arguments[1] != 0) {
+        return;
+      }
       let range = slider.get();
       var min = new Date(Math.trunc(parseFloat(range[0])));
       var max = new Date(Math.trunc(parseFloat(range[1])));
       $('#range-start').text(new Date(min).toLocaleString());
       $('#range-end').text(new Date(max).toLocaleString());
       $("#" + $("#select").val()).empty();
+      console.log("set called","#" + $("#select").val(), range)
       for (let i in currencies) {
         drawLine(currencies[i], onPage, {color: 'blue'});
       }
@@ -291,6 +295,7 @@ window.addEventListener('load', function () {
                   xn.setSeconds(0)
                   var min = Math.min(this.x0.getTime(), xn.getTime());
                   var max = Math.max(this.x0.getTime(), xn.getTime());
+                  $("#" + $("#select").val()).empty();
                   slider.set([min, max])
                   this.x0 = null;
                   this.drag = null
