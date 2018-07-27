@@ -265,7 +265,7 @@ window.addEventListener('load', function () {
                       .attr("class", "drag")
                       .attr("width", 0)
                       .attr("height", height)
-                      .style("opacity", .25)
+                      .style("opacity", .15)
                       .style("fill", "blue")
                   this.drag = drag
                 })
