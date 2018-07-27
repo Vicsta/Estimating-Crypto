@@ -284,7 +284,7 @@ window.addEventListener('load', function () {
                     var max = Math.max(x(this.x0), x(xn));
                     var width = max - min;
                     this.drag.attr("width", width)
-                    this.drag.attr("transform", "translate(" + (+margin.left + min) + "," + margin.top + ")")
+                    this.drag.attr("transform", "translate(" + min + "," + margin.top + ")")
                     return
                   }
                   var x0 = x.invert(d3.mouse(this)[0]);
