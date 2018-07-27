@@ -2,8 +2,8 @@ window.addEventListener('load', function () {
     let min = 1.4951196E12;
     let max = 1.5305724E12;
 
-    $('#range-start').text(new Date(min).toLocaleString())
-    $('#range-end').text(new Date(max).toLocaleString())
+    $('#range-start').text(new Date(min).toLocaleString());
+    $('#range-end').text(new Date(max).toLocaleString());
     var slider = noUiSlider.create(document.getElementById('slider'), {
     	start: [ min, max ],
       step: 1000 * 60 * 60,
@@ -14,20 +14,28 @@ window.addEventListener('load', function () {
     	}
     });
 
+    slider.on("slide", function() {
+        let range = slider.get();
+        var min = new Date(Math.trunc(parseFloat(range[0])));
+        var max = new Date(Math.trunc(parseFloat(range[1])));
+        $('#range-start').text(new Date(min).toLocaleString());
+        $('#range-end').text(new Date(max).toLocaleString());
+    });
+
     slider.on("change", function(){
-      let range = slider.get()
-      var min = new Date(Math.trunc(parseFloat(range[0])))
-      var max = new Date(Math.trunc(parseFloat(range[1])))
-      $('#range-start').text(new Date(min).toLocaleString())
-      $('#range-end').text(new Date(max).toLocaleString())
-      $("#" + $("#select").val()).empty()
+      let range = slider.get();
+      var min = new Date(Math.trunc(parseFloat(range[0])));
+      var max = new Date(Math.trunc(parseFloat(range[1])));
+      $('#range-start').text(new Date(min).toLocaleString());
+      $('#range-end').text(new Date(max).toLocaleString());
+      $("#" + $("#select").val()).empty();
       for (let i in currencies) {
         drawLine(currencies[i], onPage, {color: 'blue'});
       }
     });
 
 
-    let currencies = ["XETHZUSD", "XLTCZUSD", "XXBTZUSD", "XXRPZUSD"]
+    let currencies = ["XETHZUSD", "XLTCZUSD", "XXBTZUSD", "XXRPZUSD"];
     let algorithms = ["linear", "linear_scaled", "random_forest", "gradient_boosted_tree", "decision_tree"];
 
     algorithms.forEach((x, i) => {
@@ -57,9 +65,9 @@ window.addEventListener('load', function () {
             d.predicted = +d.predicted;
             return d;
         }, function (error, data) {
-            let range = slider.get()
-            let min = new Date(Math.trunc(parseFloat(range[0])))
-            let max = new Date(Math.trunc(parseFloat(range[1])))
+            let range = slider.get();
+            let min = new Date(Math.trunc(parseFloat(range[0])));
+            let max = new Date(Math.trunc(parseFloat(range[1])));
             data = data.filter(function(d){
               return d.date >= min && d.date <= max
             });
@@ -67,7 +75,7 @@ window.addEventListener('load', function () {
             // Create the graph containers
 
             let graphContent = document.createElement("div");
-            $(graphContent).attr('data-sort', currencies.indexOf(pair))
+            $(graphContent).attr('data-sort', currencies.indexOf(pair));
             graphContent.className = "graphContent";
 
             let graph = document.createElement("div");
@@ -81,15 +89,15 @@ window.addEventListener('load', function () {
 
             document.getElementById(algo).appendChild(graphContent);
 
-            let parent = $(document.getElementById(algo))
-            let graphs = parent.find(".graphContent")
+            let parent = $(document.getElementById(algo));
+            let graphs = parent.find(".graphContent");
             graphs = graphs.sort(function(a,b){
               return +$(a).attr('data-sort') - +$(b).attr('data-sort')
-            })
-            $(parent).empty()
+            });
+            $(parent).empty();
             graphs.each(function(i, graph){
               parent.append(graph)
-            })
+            });
 
             // Create the SVG and G for each graph
             let svg = d3.select(graph).append("svg").attr("width", "960").attr("height", "500"),
@@ -246,7 +254,7 @@ window.addEventListener('load', function () {
 
     let onPage = $("#select").val();
     $("#" + onPage).fadeIn("slow", function() {
-      $("#" + onPage).empty()
+      $("#" + onPage).empty();
       for (let i in currencies) {
         drawLine(currencies[i], onPage, {color: 'blue'});
       }
@@ -255,7 +263,7 @@ window.addEventListener('load', function () {
     $("#select").on('change', function() {
       let newPage = this.value;
       $("#" + onPage).fadeOut("slow", function() {
-        $("#" + newPage).empty()
+        $("#" + newPage).empty();
         for (let i in currencies) {
           drawLine(currencies[i], newPage, {color: 'blue'});
         }
