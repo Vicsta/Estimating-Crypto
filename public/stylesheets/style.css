@@ -13,6 +13,11 @@
     float: left;
 }
 
+.overlay {
+  fill: none;
+  pointer-events: all;
+}
+
 #slider-container {
     margin-top: 17px;
     width: 930px;
@@ -48,6 +53,15 @@
 .graphContent {
     width: 100%;
     overflow: hidden;
+}
+
+.tooltip {
+    position: absolute;
+    text-align: left;
+    padding: 3px;
+    font: 12px sans-serif;
+    background: lightsteelblue;
+    pointer-events: none;
 }
 
 .graph {

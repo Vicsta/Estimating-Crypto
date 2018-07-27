@@ -243,11 +243,11 @@ window.addEventListener('load', function () {
             graphLegend.appendChild(p);
 
             p = document.createElement("p");
-            p.innerHTML = "Mean Error: " + ME.toFixed(6);
+            p.innerHTML = "Mean Error: " + ME.toFixed(3);
             graphLegend.appendChild(p);
 
             p = document.createElement("p");
-            p.innerHTML = "Mean Squared Error: " + MSE.toFixed(6);
+            p.innerHTML = "Mean Squared Error: " + MSE.toFixed(3);
             graphLegend.appendChild(p);
 
 
@@ -266,7 +266,8 @@ window.addEventListener('load', function () {
                   x0.setSeconds(0)
                   var i = d3.bisector(function(d){return d.date}).left(data, x0, 1)
                   var d = data[i]
-                  div.html("Actual: " + d.price.toFixed(2) + "<br/>"  + "Predicted: " + d.predicted.toFixed(2)).style("left", (d3.event.pageX) + "px").style("top", (d3.event.pageY - 28) + "px");
+                  div.attr("transform", "translate(" + x(d.date) + "," + y(Math.max(d.price, d.predicted)) + 50 + ")");
+                  div.html(d.price + "<br/>"  + d.predicted).style("left", (d3.event.pageX) + "px").style("top", (d3.event.pageY - 28) + "px");
                 });
         });
     };
