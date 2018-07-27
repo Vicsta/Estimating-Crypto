@@ -1,0 +1,28 @@
+Ranking by  fit=test
+Ranking by  fit=train
+Rank     Pair Experiment      Out MSE       In R-2       In MSE
+   1 XETHZUSD        ALL   4.33350332     0.027592   4.25788811
+   2 XETHZUSD   SelfnBTC   4.34768221     0.022583   4.27982355
+   3 XETHZUSD    JustBTC   4.35512138     0.015701   4.30995488
+   4 XETHZUSD      NoBTC   4.38361921     0.012197   4.32530092
+   5 XETHZUSD   JustSelf   4.42084865     0.000004   4.37869028
+
+Rank     Pair Experiment      Out MSE       In R-2       In MSE
+   1 XXBTZUSD      NoBTC 683.83892251     0.003910 685.74901108
+   2 XXBTZUSD        ALL 683.92818143     0.004364 685.43642286
+   3 XXBTZUSD   JustSelf 685.77244532     0.000444 688.13481267
+
+Rank     Pair Experiment      Out MSE       In R-2       In MSE
+   1 XLTCZUSD        ALL   0.40133208     0.086612   0.41117555
+   2 XLTCZUSD   SelfnBTC   0.40723916     0.073599   0.41703361
+   3 XLTCZUSD      NoBTC   0.41432720     0.055434   0.42521083
+   4 XLTCZUSD    JustBTC   0.42195290     0.036450   0.43375709
+   5 XLTCZUSD   JustSelf   0.43601620     0.006489   0.44724439
+
+Rank     Pair Experiment      Out MSE       In R-2       In MSE
+   1 XXRPZUSD        ALL   0.00002292     0.013198   0.00002461
+   2 XXRPZUSD      NoBTC   0.00002297     0.009812   0.00002470
+   3 XXRPZUSD   SelfnBTC   0.00002298     0.010490   0.00002468
+   4 XXRPZUSD    JustBTC   0.00002301     0.005578   0.00002480
+   5 XXRPZUSD   JustSelf   0.00002315     0.001465   0.00002491
+
