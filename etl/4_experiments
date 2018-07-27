@@ -1,0 +1,101 @@
+//spark2-shell
+
+import org.apache.spark.ml.regression.LinearRegression
+import org.apache.spark.ml.linalg.Vectors
+import org.apache.spark.ml.feature.Normalizer
+import org.apache.spark.ml.feature.StandardScaler
+import org.apache.spark.sql._
+import scala.collection.mutable.ArrayBuffer
+import java.io.File
+import java.io.PrintWriter
+import scala.io.Source
+
+
+def calcMSE(r : org.apache.spark.sql.DataFrame) : Double = {
+    r.select("label", "prediction")
+.rdd.map(x => math.pow(x.get(0).asInstanceOf[Double] - x.get(1)
+.asInstanceOf[Double], 2.0))
+.reduce((x,y) => x + y) / r.count.toDouble
+}
+
+def getRegressionData(dataSet: org.apache.spark.sql.DataFrame, features:Array[Int], ri: Int) : org.apache.spark.sql.DataFrame = {
+  def rdata(row : org.apache.spark.sql.Row, fi:Array[Int]) = {
+     (row(ri).asInstanceOf[Double], Vectors.dense(fi.map(i => row(i).asInstanceOf[Double])))
+  }
+  dataSet.map(s => rdata(s, features)).toDF("label", "features")
+}
+
+
+def runFull(writer: PrintWriter, experiment: String, dataSet: org.apache.spark.sql.DataFrame, rix: Int, featix: Array[Int]) = {
+  val lr = new LinearRegression().setMaxIter(200).setFeaturesCol("features").setFitIntercept(false)
+  val data = getRegressionData(dataSet, featix, rix)
+  val model = lr.fit(data)
+  val predict = model.transform(data).select("features", "label", "prediction")
+  val columns = dataSet.columns
+  val response = dataSet.columns(rix)
+
+  writer.write(String.format("experiment=%s fit=full y=%s r2=%s mse=%s size=%s\n", experiment, response, model.summary.r2.toString, calcMSE(predict).toString, predict.count.toString))
+  for(i <- 0 until featix.size) {
+     writer.write(String.format("experiment=%s fit=full x=%s %s (%s, %s)\n", experiment, i.toString, columns(featix(i)), model.coefficients(i).toString, model.summary.tValues(i).toString))
+  }
+  writer.println("------------------------------------------")
+  writer.flush()
+}
+
+def runTrain(writer: PrintWriter, experiment: String, dataSet: org.apache.spark.sql.DataFrame, rix: Int, featix: Array[Int]) = {
+  // Regression with Training Set
+  val data = getRegressionData(dataSet, featix, rix)
+  val trainPct : Double = 0.75
+  val seed : Long = 12345L
+  val columns = dataSet.columns
+  val response = dataSet.columns(rix)
+  val Array(training, test) = data.randomSplit(Array(trainPct, (1.0 - trainPct)), seed)
+  val lrt = new LinearRegression().setMaxIter(200).setFeaturesCol("features").setFitIntercept(false)
+  val modelTrain = lrt.fit(training)
+  val trainP =  modelTrain.transform(training).select("features", "label", "prediction")
+  writer.write(String.format("experiment=%s fit=train y=%s r2=%s mse=%s size=%s\n", experiment, response, modelTrain.summary.r2.toString, calcMSE(trainP).toString, trainP.count.toString))
+  val testP =  modelTrain.transform(test).select("features", "label", "prediction")
+  writer.write(String.format("experiment=%s fit=test     y=%s       mse=%s    size=%s\n", experiment, response, calcMSE(testP).toString, testP.count.toString))
+  for(i <- 0 until featix.size) {
+     writer.write(String.format("experiment=%s fit=train x=%s %s (%s, %s)\n", experiment, i.toString, columns(featix(i)), modelTrain.coefficients(i).toString, modelTrain.summary.tValues(i).toString))
+  }
+  writer.println("------------------------------------------")
+  writer.flush()
+}
+
+
+def fit(writer:PrintWriter, experiment: String ,dataSet: org.apache.spark.sql.DataFrame, resp: String, features: Array[String]) = {
+    val featix = features.map(s => dataSet.columns.indexOf(s))
+    val rix = dataSet.columns.indexOf(resp)
+    runFull(writer, experiment, dataSet, rix, featix)
+    runTrain(writer, experiment, dataSet, rix, featix)
+}
+
+
+val sqlContext = new org.apache.spark.sql.SQLContext(sc)
+val dataSet = sqlContext.read.format("csv").option("header", "true").option("inferSchema", "true").load("/user/pjv253/valhalla/MERGED_FINAL.csv")
+val currencies = Array("XXBTZUSD", "XLTCZUSD", "XXRPZUSD", "XETHZUSD")
+val one = Array("XXBTZUSD")
+val exbtc = Array("XLTCZUSD", "XXRPZUSD", "XETHZUSD")
+val writer = new PrintWriter("Experiments.txt")
+val all = currencies.map(s => s + "_dpx")
+
+// experiment #1 with just lagged moving average
+currencies.foreach(x => fit(writer, "Experiment_JustSelf #1", dataSet, x + "_fwdDelta", Array(x + "_dpx")))
+
+// experiment #2, using bit just coin
+exbtc.foreach(x => fit(writer, "Experiment_JustBTC #2", dataSet, x + "_fwdDelta", Array("XXBTZUSD" + "_dpx")))
+
+// experiment #3 using all 
+currencies.foreach(x => fit(writer, "Experiment_ALL #3", dataSet, x + "_fwdDelta", currencies.map(s => s + "_dpx")))
+
+// experiment #4 using lagged self and bitcoin
+exbtc.foreach(x => fit(writer, "Experiment_SelfnBTC #4", dataSet, x + "_fwdDelta", Array("XXBTZUSD" + "_dpx", x + "_dpx")))
+
+// experiment #5 no bitcoin in the fit
+currencies.foreach(x => fit(writer, "Experiment_NoBTC #5", dataSet, x + "_fwdDelta", exbtc.map(s => s + "_dpx")))
+
+
+
+
+
