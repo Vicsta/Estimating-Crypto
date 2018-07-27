@@ -1,6 +1,6 @@
 .topBar {
     position: fixed;
-    width: 100%;
+    width: 1300px;
     height: 65px;
     line-height: 65px;
     background: white;
@@ -8,21 +8,30 @@
     top: 0;
     left: 0;
 }
-#slider-container {
-  width: 930px;
-  padding-left: 18px;
-  padding-right: 18px;
-  margin-left: 45px;
+
+#selectAlgo {
+    float: left;
 }
+
+#slider-container {
+    margin-top: 17px;
+    width: 930px;
+    padding-left: 18px;
+    padding-right: 18px;
+    margin-left: 45px;
+    float: left;
+}
+
 #range {
-  width: 100%;
+    width: 100%;
 }
 
 #range-start {
-  float: left;
+    float: left;
 }
+
 #range-end {
-  float: right;
+    float: right;
 }
 
 #slider {
