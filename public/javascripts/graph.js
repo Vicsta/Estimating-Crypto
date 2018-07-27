@@ -280,7 +280,7 @@ window.addEventListener('load', function () {
             graphLegend.appendChild(p);
 
 
-            var div = d3.select("body").append("div").attr("class", "tooltip");
+            var div = d3.select("#" + $("#select").val()).append("div").attr("class", "tooltip");
             svg.append("rect")
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
                 .attr("class", "overlay")
@@ -302,17 +302,9 @@ window.addEventListener('load', function () {
                   x0.setSeconds(0)
                   this.x0 = x0;
                   div.style("display", "none");
-                  var drag = svg.append("rect")
-                      .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
-                      .attr("class", "drag")
-                      .attr("width", 0)
-                      .attr("height", height)
-                      .style("opacity", .15)
-                      .style("fill", "blue")
-                  this.drag = drag
                 })
                 .on("mouseup", function() {
-                  if(!this.x0) {
+                  if(!this.drag) {
                     return;
                   }
                   var xn = x.invert(d3.mouse(this)[0]);
@@ -336,6 +328,16 @@ window.addEventListener('load', function () {
                 })
                 .on("mousemove", function(event) {
                   if(this.x0) {
+                    if(!this.drag) {
+                      var drag = svg.append("rect")
+                          .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+                          .attr("class", "drag")
+                          .attr("width", 0)
+                          .attr("height", height)
+                          .style("opacity", .15)
+                          .style("fill", "blue")
+                      this.drag = drag
+                    }
                     var xn = x.invert(d3.mouse(this)[0]);
                     xn.setMinutes(0)
                     xn.setSeconds(0)
