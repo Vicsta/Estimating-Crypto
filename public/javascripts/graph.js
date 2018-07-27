@@ -1,4 +1,10 @@
 window.addEventListener('load', function () {
+    window.addEventListener('resize', function() {
+      $("#" + $("#select").val()).empty();
+      for (let i in currencies) {
+        drawLine(currencies[i], onPage, {color: 'blue'});
+      }
+    });
     let min = 1.4951196E12;
     let max = 1.5305724E12;
 
@@ -32,7 +38,6 @@ window.addEventListener('load', function () {
       $('#range-start').text(new Date(min).toLocaleString());
       $('#range-end').text(new Date(max).toLocaleString());
       $("#" + $("#select").val()).empty();
-      console.log("set called","#" + $("#select").val(), range)
       for (let i in currencies) {
         drawLine(currencies[i], onPage, {color: 'blue'});
       }
@@ -104,7 +109,12 @@ window.addEventListener('load', function () {
             });
 
             // Create the SVG and G for each graph
-            let svg = d3.select(graph).append("svg").attr("width", "960").attr("height", "500"),
+            let w = $(window).width()
+            let h = $(window).width() * 0.52
+            if(h > $(window).height() - 175) {
+              h = $(window).height() - 175;
+            }
+            let svg = d3.select(graph).append("svg").attr("width", w).attr("height", h),
                 margin = {top: 20, right: 20, bottom: 30, left: 50},
                 width = +svg.attr("width") - margin.left - margin.right,
                 height = +svg.attr("height") - margin.top - margin.bottom,
