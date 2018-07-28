@@ -190,11 +190,9 @@ window.addEventListener('load', function () {
 
         // Create area
         let area = d3.area()
-        // .interpolate("cardinal")
             .x(function (d) {
                 return x(d.date)
             })
-            // .x1( function(d) { return x(predicted.date) } )
             .y0(function (d) {
                 return y(d.price)
             })
