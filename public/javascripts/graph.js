@@ -293,7 +293,31 @@ window.addEventListener('load', function () {
             .attr("class", "overlay")
             .attr("width", width)
             .attr("height", height)
-            .on("mousedown", function(e) {
+            .on("mousedown.tooltip", function() {
+              tooltip.css("display", "none")
+            })
+            .on("mouseup.tooltip", function(){
+              tooltip.remove()
+            })
+            .on("mouseout.tooltip", function(){
+              tooltip.css("display", "none")
+            })
+            .on("mousemove.tooltip", function(){
+              var x0 = x.invert(d3.mouse(this)[0]);
+              x0.setMinutes(0)
+              x0.setSeconds(0)
+              var i = d3.bisector(function(d){return d.date}).left(data, x0, 1)
+              var d = data[i]
+              if(!d) {
+                return
+              }
+              var tooltipText = "Time: " + d.date.toLocaleString() + "<br/>" + "Actual: " + d.price.toFixed(2) + "<br/>"  + "Predicted: " + d.predicted.toFixed(2);
+              tooltip.css("display", "block");
+              tooltip.css("left", (d3.event.clientX) + "px");
+              tooltip.css("top", (d3.event.clientY - 28) + "px");
+              tooltip.html(tooltipText);
+            })
+            .on("mousedown.drag", function() {
               if(d3.event.button != 0) {
                 d3.event.target.style.cursor = 'pointer';
                 this.x0 = null
@@ -308,9 +332,8 @@ window.addEventListener('load', function () {
               x0.setMinutes(0)
               x0.setSeconds(0)
               this.x0 = x0;
-              tooltip.css("display", "none")
             })
-            .on("mouseup", function() {
+            .on("mouseup.drag", function() {
               if(!this.drag) {
                 this.x0 = null;
                 return;
@@ -321,55 +344,40 @@ window.addEventListener('load', function () {
               var min = Math.min(this.x0.getTime(), xn.getTime());
               var max = Math.max(this.x0.getTime(), xn.getTime());
               $("#" + $("#select").val()).empty();
-              tooltip.remove()
               slider.set([min, max])
               this.x0 = null;
               this.drag = null
-            }).on("mouseout", function() {
+            }).on("mouseout.drag", function() {
               d3.event.target.style.cursor = 'pointer';
-              tooltip.css("display", "none")
               this.x0 = null
               if(this.drag != null) {
                 this.drag.remove()
               }
               this.drag = null
             })
-            .on("mousemove", function(event) {
-              if(this.x0) {
-                if(!this.drag) {
-                  var drag = svg.append("rect")
-                      .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
-                      .attr("class", "drag")
-                      .attr("width", 0)
-                      .attr("height", height)
-                      .style("opacity", .15)
-                      .style("fill", "blue")
-                  this.drag = drag
-                }
-                var xn = x.invert(d3.mouse(this)[0]);
-                xn.setMinutes(0)
-                xn.setSeconds(0)
-                var min = Math.min(x(this.x0), x(xn));
-                var max = Math.max(x(this.x0), x(xn));
-                var width = max - min;
-                this.drag.attr("width", width)
-                this.drag.attr("transform", "translate(" + (parseInt(margin.left) + min )+ "," + margin.top + ")")
-                d3.event.target.style.cursor = 'move';
+            .on("mousemove.drag", function(event) {
+              if(!this.x0) {
                 return
               }
-              var x0 = x.invert(d3.mouse(this)[0]);
-              x0.setMinutes(0)
-              x0.setSeconds(0)
-              var i = d3.bisector(function(d){return d.date}).left(data, x0, 1)
-              var d = data[i]
-              if(!d) {
-                return
+              if(!this.drag) {
+                var drag = svg.append("rect")
+                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+                    .attr("class", "drag")
+                    .attr("width", 0)
+                    .attr("height", height)
+                    .style("opacity", .15)
+                    .style("fill", "blue")
+                this.drag = drag
               }
-              var tooltipText = "Time: " + d.date.toLocaleString() + "<br/>" + "Actual: " + d.price.toFixed(2) + "<br/>"  + "Predicted: " + d.predicted.toFixed(2);
-              tooltip.css("display", "block");
-              tooltip.css("left", (d3.event.clientX) + "px");
-              tooltip.css("top", (d3.event.clientY - 28) + "px");
-              tooltip.html(tooltipText);
+              var xn = x.invert(d3.mouse(this)[0]);
+              xn.setMinutes(0)
+              xn.setSeconds(0)
+              var min = Math.min(x(this.x0), x(xn));
+              var max = Math.max(x(this.x0), x(xn));
+              var width = max - min;
+              this.drag.attr("width", width)
+              this.drag.attr("transform", "translate(" + (parseInt(margin.left) + min )+ "," + margin.top + ")")
+              d3.event.target.style.cursor = 'move';
             });
         }
 
