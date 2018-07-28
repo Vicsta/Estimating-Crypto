@@ -273,7 +273,11 @@ window.addEventListener('load', function () {
         graphLegend.appendChild(p);
 
 
-        var div = d3.select("#" + $("#select").val()).append("div").attr("class", "tooltip");
+        var tooltip = document.createElement("div");
+        tooltip.className = "tooltip";
+        graphContent.appendChild(tooltip);
+        tooltip = $(tooltip)
+
         svg.append("rect")
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
             .attr("class", "overlay")
@@ -294,7 +298,7 @@ window.addEventListener('load', function () {
               x0.setMinutes(0)
               x0.setSeconds(0)
               this.x0 = x0;
-              div.style("display", "none");
+              tooltip.css("display", "none")
             })
             .on("mouseup", function() {
               if(!this.drag) {
@@ -306,13 +310,13 @@ window.addEventListener('load', function () {
               var min = Math.min(this.x0.getTime(), xn.getTime());
               var max = Math.max(this.x0.getTime(), xn.getTime());
               $("#" + $("#select").val()).empty();
+              tooltip.remove()
               slider.set([min, max])
               this.x0 = null;
               this.drag = null
-            }).on("mouseover", function() { div.style("display", null); })
-            .on("mouseout", function() {
+            }).on("mouseout", function() {
               d3.event.target.style.cursor = 'pointer';
-              div.style("display", "none");
+              tooltip.css("display", "none")
               this.x0 = null
               if(this.drag != null) {
                 this.drag.remove()
@@ -347,11 +351,14 @@ window.addEventListener('load', function () {
               x0.setSeconds(0)
               var i = d3.bisector(function(d){return d.date}).left(data, x0, 1)
               var d = data[i]
-              if(! d) {
-                div.style("display", 'none');
-                return;
+              if(!d) {
+                return
               }
-              div.html("Time: " + d.date.toLocaleString() + "<br/>" + "Actual: " + d.price.toFixed(2) + "<br/>"  + "Predicted: " + d.predicted.toFixed(2)).style("left", (d3.event.pageX) + "px").style("top", (d3.event.pageY - 28) + "px");
+              var tooltipText = "Time: " + d.date.toLocaleString() + "<br/>" + "Actual: " + d.price.toFixed(2) + "<br/>"  + "Predicted: " + d.predicted.toFixed(2);
+              tooltip.css("display", "block");
+              tooltip.css("left", (d3.event.pageX) + "px");
+              tooltip.css("top", (d3.event.pageY - 28) + "px");
+              tooltip.html(tooltipText);
             });
         }
 

@@ -61,12 +61,15 @@
 }
 
 .tooltip {
-    position: absolute;
+    position: fixed;
     text-align: left;
     padding: 3px;
     font: 12px sans-serif;
     background: lightsteelblue;
     pointer-events: none;
+    border-radius: 3px;
+    z-index: 10000;
+    display: none;
 }
 
 .graph {
