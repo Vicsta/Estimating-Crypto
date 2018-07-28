@@ -233,6 +233,10 @@ window.addEventListener('load', function () {
         let MSE = data.reduce((acc, d) => acc + Math.pow(d.predicted - d.price, 2), 0) / data.length;
         // Mean Squared Error
 
+        let MINE = data.reduce((acc, d) => Math.min(acc, Math.abs(d.predicted - d.price)) , 100000);
+
+        let MAXE = data.reduce((acc, d) => Math.max(acc, Math.abs(d.predicted - d.price)) , 0);
+
         let p = document.createElement("p");
         p.className = pair;
         p.innerHTML = pair;
@@ -268,6 +272,14 @@ window.addEventListener('load', function () {
 
         p = document.createElement("p");
         p.innerHTML = "MSE: " + MSE.toFixed(6);
+        graphLegend.appendChild(p);
+
+        p = document.createElement("p");
+        p.innerHTML = "MINE: " + MINE.toFixed(6);
+        graphLegend.appendChild(p);
+
+        p = document.createElement("p");
+        p.innerHTML = "MAXE: " + MAXE.toFixed(6);
         graphLegend.appendChild(p);
 
 
