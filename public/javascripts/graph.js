@@ -357,8 +357,8 @@ window.addEventListener('load', function () {
               }
               var tooltipText = "Time: " + d.date.toLocaleString() + "<br/>" + "Actual: " + d.price.toFixed(2) + "<br/>"  + "Predicted: " + d.predicted.toFixed(2);
               tooltip.css("display", "block");
-              tooltip.css("left", (d3.event.pageX) + "px");
-              tooltip.css("top", (d3.event.pageY - 28) + "px");
+              tooltip.css("left", (d3.event.clientX) + "px");
+              tooltip.css("top", (d3.event.clientY - 28) + "px");
               tooltip.html(tooltipText);
             });
         }
