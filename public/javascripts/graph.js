@@ -297,7 +297,7 @@ window.addEventListener('load', function () {
               tooltip.css("display", "none")
             })
             .on("mouseup.tooltip", function(){
-              tooltip.remove()
+              tooltip.css("display", "none")
             })
             .on("mouseout.tooltip", function(){
               tooltip.css("display", "none")
