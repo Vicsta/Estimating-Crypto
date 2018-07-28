@@ -398,5 +398,4 @@ window.addEventListener('load', function () {
         onPage = newPage
       });
     });
-
 });
