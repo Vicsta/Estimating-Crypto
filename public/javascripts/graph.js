@@ -124,8 +124,8 @@ window.addEventListener('load', function () {
         // Create the SVG and G for each graph
         let w = $(window).width()
         let h = $(window).width() * 0.52
-        if(h > $(window).height() - 175) {
-          h = $(window).height() - 175;
+        if(h > $(window).height() - 200) {
+          h = $(window).height() - 200;
         }
         let svg = d3.select(graph).append("svg").attr("width", w).attr("height", h),
             margin = {top: 20, right: 20, bottom: 30, left: 50},
