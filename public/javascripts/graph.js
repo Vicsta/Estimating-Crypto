@@ -302,6 +302,7 @@ window.addEventListener('load', function () {
             })
             .on("mouseup", function() {
               if(!this.drag) {
+                this.x0 = null;
                 return;
               }
               var xn = x.invert(d3.mouse(this)[0]);
