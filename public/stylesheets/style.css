@@ -55,9 +55,29 @@
     margin-left: 62px;
 }
 
+
+.graphTitle .name {
+  display: inline-block;
+  float: left;
+}
+.graphTitle .actual {
+  display: inline-block;
+  float: right;
+  margin-left: 20px;
+  font-size: .75em;
+}
+.graphTitle .predicted {
+  display: inline-block;
+  float: right;
+  margin-left: 20px;
+  font-size: .75em;
+}
+
 .graphContent {
     width: 100%;
     overflow: hidden;
+    margin-bottom: 50px;
+    border-bottom: 1px black;
 }
 
 .tooltip {
@@ -78,10 +98,17 @@
     clear: both;
 }
 
-.graphLegend {
+.graphMetrics {
     float: left;
     padding: 20px;
-    height: 500px;
+    display: flex;
+    width: 100%;
+    border-bottom: 1px solid black;
+    border-top: 1px solid black;
+}
+
+.graphMetrics span {
+  flex: 1;
 }
 
 #content {

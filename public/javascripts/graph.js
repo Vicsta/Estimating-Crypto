@@ -96,14 +96,18 @@ window.addEventListener('load', function () {
         $(graphContent).attr('data-sort', currencies.indexOf(pair));
         graphContent.className = "graphContent";
 
+        let graphTitle = document.createElement("div");
+        graphTitle.className = "graphTitle";
+
         let graph = document.createElement("div");
         graph.className = "graph";
 
-        let graphLegend = document.createElement("div");
-        graphLegend.className = "graphLegend";
+        let graphMetrics = document.createElement("div");
+        graphMetrics.className = "graphMetrics";
 
+        graphContent.appendChild(graphTitle);
         graphContent.appendChild(graph);
-        graphContent.appendChild(graphLegend);
+        graphContent.appendChild(graphMetrics);
 
         document.getElementById(algo).appendChild(graphContent);
 
@@ -238,49 +242,47 @@ window.addEventListener('load', function () {
         let MAXE = data.reduce((acc, d) => Math.max(acc, Math.abs(d.predicted - d.price)) , 0);
 
         let p = document.createElement("p");
-        p.className = pair;
+        p.className = 'name';
         p.innerHTML = pair;
-        graphLegend.appendChild(p);
+        graphTitle.appendChild(p);
 
-        // Describe the actual price line
         p = document.createElement("p");
-        p.className = pair;
-        p.innerHTML = "&nbsp;&nbsp;Actual";
-        let span = document.createElement("span");
-        span.style.width = "18px";
-        span.style.height = "18px";
-        span.style.float = "left";
-        span.style.background = 'blue';
-        p.appendChild(span);
-        graphLegend.appendChild(p);
-
-        // Describe the predicted line
-        p = document.createElement("p");
-        p.className = pair;
+        p.className = 'predicted';
         p.innerHTML = "&nbsp;&nbsp;Predicted";
-        span = document.createElement("span");
+        let span = document.createElement("span");
         span.style.width = "18px";
         span.style.height = "18px";
         span.style.float = "left";
         span.style.background = "red";
         p.appendChild(span);
-        graphLegend.appendChild(p);
+        graphTitle.appendChild(p);
 
         p = document.createElement("p");
-        p.innerHTML = "ME: " + ME.toFixed(6);
-        graphLegend.appendChild(p);
+        p.className = 'actual';
+        p.innerHTML = "&nbsp;&nbsp;Actual";
+        span = document.createElement("span");
+        span.style.width = "18px";
+        span.style.height = "18px";
+        span.style.float = "left";
+        span.style.background = 'blue';
+        p.appendChild(span);
+        graphTitle.appendChild(p);
 
-        p = document.createElement("p");
-        p.innerHTML = "MSE: " + MSE.toFixed(6);
-        graphLegend.appendChild(p);
+        span = document.createElement("span");
+        span.innerHTML = "ME: " + ME.toFixed(6);
+        graphMetrics.appendChild(span);
 
-        p = document.createElement("p");
-        p.innerHTML = "MINE: " + MINE.toFixed(6);
-        graphLegend.appendChild(p);
+        span = document.createElement("span");
+        span.innerHTML = "MSE: " + MSE.toFixed(6);
+        graphMetrics.appendChild(span);
 
-        p = document.createElement("p");
-        p.innerHTML = "MAXE: " + MAXE.toFixed(6);
-        graphLegend.appendChild(p);
+        span = document.createElement("span");
+        span.innerHTML = "MINE: " + MINE.toFixed(6);
+        graphMetrics.appendChild(span);
+
+        span = document.createElement("span");
+        span.innerHTML = "MAXE: " + MAXE.toFixed(6);
+        graphMetrics.appendChild(span);
 
 
         var tooltip = document.createElement("div");
