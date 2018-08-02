@@ -1,5 +1,5 @@
 window.addEventListener('load', function () {
-    var cache = {}
+    var cache = {};
     var debounce = function(func, wait, immediate) {
     	var timeout;
     	return function() {
@@ -46,8 +46,8 @@ window.addEventListener('load', function () {
 
     slider.on("set", function(){
       let range = slider.get();
-      let previous = slider.previous
-      if(previous && previous[0] == range[0] && previous[1] == range[1]) {
+      let previous = slider.previous;
+      if(previous && previous[0] === range[0] && previous[1] === range[1]) {
         return
       }
       var min = new Date(Math.trunc(parseFloat(range[0])));
@@ -122,8 +122,8 @@ window.addEventListener('load', function () {
         });
 
         // Create the SVG and G for each graph
-        let w = $(window).width()
-        let h = $(window).width() * 0.52
+        let w = $(window).width();
+        let h = $(window).width() * 0.52;
         if(h > $(window).height() - 200) {
           h = $(window).height() - 200;
         }
@@ -320,7 +320,7 @@ window.addEventListener('load', function () {
               tooltip.html(tooltipText);
             })
             .on("mousedown.drag", function() {
-              if(d3.event.button != 0) {
+              if(d3.event.button !== 0) {
                 d3.event.target.style.cursor = 'pointer';
                 this.x0 = null
                 if(this.drag != null) {
@@ -331,8 +331,8 @@ window.addEventListener('load', function () {
               }
               d3.event.target.style.cursor = 'move';
               var x0 = x.invert(d3.mouse(this)[0]);
-              x0.setMinutes(0)
-              x0.setSeconds(0)
+              x0.setMinutes(0);
+              x0.setSeconds(0);
               this.x0 = x0;
             })
             .on("mouseup.drag", function() {
@@ -341,17 +341,17 @@ window.addEventListener('load', function () {
                 return;
               }
               var xn = x.invert(d3.mouse(this)[0]);
-              xn.setMinutes(0)
-              xn.setSeconds(0)
+              xn.setMinutes(0);
+              xn.setSeconds(0);
               var min = Math.min(this.x0.getTime(), xn.getTime());
               var max = Math.max(this.x0.getTime(), xn.getTime());
               $("#" + $("#select").val()).empty();
-              slider.set([min, max])
+              slider.set([min, max]);
               this.x0 = null;
               this.drag = null
             }).on("mouseout.drag", function() {
               d3.event.target.style.cursor = 'pointer';
-              this.x0 = null
+              this.x0 = null;
               if(this.drag != null) {
                 this.drag.remove()
               }
@@ -368,17 +368,17 @@ window.addEventListener('load', function () {
                     .attr("width", 0)
                     .attr("height", height)
                     .style("opacity", .15)
-                    .style("fill", "blue")
+                    .style("fill", "blue");
                 this.drag = drag
               }
               var xn = x.invert(d3.mouse(this)[0]);
-              xn.setMinutes(0)
-              xn.setSeconds(0)
+              xn.setMinutes(0);
+              xn.setSeconds(0);
               var min = Math.min(x(this.x0), x(xn));
               var max = Math.max(x(this.x0), x(xn));
               var width = max - min;
-              this.drag.attr("width", width)
-              this.drag.attr("transform", "translate(" + (parseInt(margin.left) + min )+ "," + margin.top + ")")
+              this.drag.attr("width", width);
+              this.drag.attr("transform", "translate(" + (parseInt(margin.left) + min )+ "," + margin.top + ")");
               d3.event.target.style.cursor = 'move';
             });
         }
